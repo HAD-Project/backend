@@ -20,11 +20,11 @@ public class Records {
     private String filePath;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "doctor_id")
     private Doctors doctor;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "receptionist_id")
     private Receptionists receptionist;
 
     @ManyToOne

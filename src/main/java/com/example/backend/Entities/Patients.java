@@ -3,10 +3,8 @@ package com.example.backend.Entities;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -46,6 +44,6 @@ public class Patients {
     private String mobileNo;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "Patients")
+    @OneToMany(mappedBy = "id")
     List<Records> records;
 }
