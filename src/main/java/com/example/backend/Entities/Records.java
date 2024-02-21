@@ -1,12 +1,8 @@
 package com.example.backend.Entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
+@Entity(name = "Records")
 public class Records {
 
     @Id
@@ -18,11 +14,11 @@ public class Records {
     private String filePath;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "doctor_id")
     private Doctors doctor;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "receptionist_id")
     private Receptionists receptionist;
 
     @ManyToOne
