@@ -23,4 +23,7 @@ public class Receptionists extends Users {
     @JsonIgnore
     @OneToMany
     private List<Appointments> appointments;
+
+    @Column(name="active",nullable = false)
+    private  boolean active;
 }
