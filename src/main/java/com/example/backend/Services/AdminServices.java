@@ -1,11 +1,14 @@
 package com.example.backend.Services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.Entities.Admins;
 import com.example.backend.Entities.Doctors;
 import com.example.backend.Models.AdminModel;
+import com.example.backend.Models.DoctorDeleteResponseModel;
 import com.example.backend.Models.DoctorModel;
 import com.example.backend.Repositories.AdminRepository;
 import com.example.backend.Repositories.DoctorRepository;
@@ -45,7 +48,7 @@ public class AdminServices {
 
     public Doctors createDoctor(DoctorModel doctorModel) {
         Doctors newDoctor = new Doctors();
-
+        System.out.println(doctorModel.toString());
         newDoctor.setName(doctorModel.getName());
         newDoctor.setUsername(doctorModel.getUsername());
         newDoctor.setPassword(doctorModel.getPassword());
@@ -57,9 +60,13 @@ public class AdminServices {
     
     }
 
-    public Doctors updateDoctorName(String oldName, String newName) {
+    public List<Doctors> getDoctors() {
+        return doctorRepository.findAll();
+    }
+
+    public Doctors updateDoctorName(String username, String newName) {
         
-        Doctors doctorToBeUpdated = doctorRepository.findByName(oldName);
+        Doctors doctorToBeUpdated = doctorRepository.findByUsername(username);
         doctorToBeUpdated.setName(newName);
 
         return doctorRepository.save(doctorToBeUpdated);
@@ -86,6 +93,21 @@ public class AdminServices {
         doctorToBeUpdated.setQualifications(newQualifications);
 
         return doctorRepository.save(doctorToBeUpdated);
+    }
+
+    public DoctorDeleteResponseModel deleteDoctor(String username) {
+        Doctors doctorToBeDeleted = doctorRepository.findByUsername(username);
+        DoctorDeleteResponseModel doctorDeleteResponseModel = new DoctorDeleteResponseModel();
+        try {
+            doctorRepository.delete(doctorToBeDeleted);
+            doctorDeleteResponseModel.setRequestStatus("Success");
+            doctorDeleteResponseModel.setRemarks("None");
+        } catch (Exception e) {
+            doctorDeleteResponseModel.setRequestStatus("Failure");
+            doctorDeleteResponseModel.setRemarks(e.toString());
+        }
+
+        return doctorDeleteResponseModel;
     }
 
 }

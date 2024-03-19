@@ -1,12 +1,22 @@
 package com.example.backend.Entities;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Entity(name = "Records")
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class Records {
 
     @Id
@@ -18,11 +28,11 @@ public class Records {
     private String filePath;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "doctor_id")
     private Doctors doctor;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "receptionist_id")
     private Receptionists receptionist;
 
     @ManyToOne

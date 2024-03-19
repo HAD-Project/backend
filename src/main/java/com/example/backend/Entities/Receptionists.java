@@ -23,6 +23,6 @@ public class Receptionists extends Users{
     private String qualifications;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "Receptionists")
+    @OneToMany(mappedBy = "receptionist")
     private List<Appointments> appointments;
 }
