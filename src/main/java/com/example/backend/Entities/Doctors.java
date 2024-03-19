@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.util.List;
 
 @Entity
 @Table(name = "Doctors")
@@ -22,5 +23,8 @@ public class Doctors extends Users {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department")
     @JsonIgnoreProperties("doctors")
-    private Departments department;    
+    private Departments department;
+
+    @ManyToMany(mappedBy = "treatedBy")
+    List<Patients> treats;
 }

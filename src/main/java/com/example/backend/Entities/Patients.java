@@ -10,6 +10,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,4 +47,8 @@ public class Patients {
     @JsonIgnore
     @OneToMany(mappedBy = "id")
     List<Records> records;
+
+    @JsonIgnore
+    @ManyToMany
+    List<Doctors> treatedBy;
 }
