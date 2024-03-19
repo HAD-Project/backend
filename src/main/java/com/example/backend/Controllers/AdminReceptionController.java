@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//@CrossOrigin(origins = "http://localhost:3000/")
+@CrossOrigin(origins = "http://localhost:3000/")
 @RestController
 @RequestMapping("/api/admin/receptionist/")
 public class AdminReceptionController {
@@ -29,6 +29,8 @@ public class AdminReceptionController {
 
     @PostMapping("/addReceptionist")
     public Receptionists createReceptionist(@RequestBody Receptionists receptionist){
+        receptionist.setUserType(1);
+        receptionist.setActive(true);
         return receptionRepository.save(receptionist);
     }
     @PutMapping("/receptionist/{id}")
