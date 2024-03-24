@@ -10,9 +10,10 @@ import lombok.AllArgsConstructor;
 @Setter
 @Getter
 public class RecordModel {
+    int recordId;
     int doctorId;
     int patientId;
     String text;
-    int recordType;
+    String recordType;
     String date;
 }
