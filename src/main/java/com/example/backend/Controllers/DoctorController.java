@@ -10,7 +10,6 @@ import com.example.backend.Models.RecordModel;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.support.Repositories;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,7 +57,7 @@ public class DoctorController {
     @PostMapping("/createRecord")
     public ResponseEntity<Records> createRecord(@RequestBody RecordModel record) {
         try {
-            Records createdRecord = doctorService.createRecord(record);
+            doctorService.createRecord(record);
             return ResponseEntity.ok().build();
         }
         catch (Exception e) {
@@ -66,5 +65,19 @@ public class DoctorController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/getRecords")
+    public ResponseEntity<List<RecordModel>> getMethodName(@RequestParam Integer patientId) {
+        try {
+            List<RecordModel> records = doctorService.getRecords(patientId);
+            return ResponseEntity.ok().body(records);
+        }
+        catch (Exception e) {
+            System.out.println(e.getLocalizedMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
     
 }

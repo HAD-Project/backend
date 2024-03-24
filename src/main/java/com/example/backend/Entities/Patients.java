@@ -45,7 +45,7 @@ public class Patients {
     private String mobileNo;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "id")
+    @OneToMany(mappedBy = "patient")
     List<Records> records;
 
     @JsonIgnore

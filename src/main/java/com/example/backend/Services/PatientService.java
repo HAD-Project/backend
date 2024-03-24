@@ -13,6 +13,6 @@ public class PatientService {
     private PatientRepository patientRepository;
 
     Patients findPatientById(int patientId) {
-        return patientRepository.findByPatientId(patientId);
+        return patientRepository.findById(patientId);
     }
 }
