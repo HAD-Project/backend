@@ -29,11 +29,11 @@ public class JwtUtil {
         this.jwtParser = Jwts.parser().setSigningKey(secret);
     }
 
-    public String createToken(UserModel user) {
+    public String createToken(UserModel user, String role) {
         Claims claims = Jwts.claims().setSubject(user.getUsername());
         claims.put("name", user.getName());
-        Date createTime = new Date();
-        Date tokenValidity = new Date(createTime.getTime() + TimeUnit.MINUTES.toMillis(this.tokenValidity));
+        claims.put("role", role);
+        Date tokenValidity = new Date(System.currentTimeMillis() + this.tokenValidity);
         return Jwts.builder()
                 .setClaims(claims)
                 .setExpiration(tokenValidity)
@@ -73,6 +73,7 @@ public class JwtUtil {
 
     public boolean validateClaims(Claims claims) throws AuthenticationException {
         try {
+            System.out.println("Checking validity");
             return claims.getExpiration().after(new Date());
         }
         catch (Exception e) {
@@ -84,7 +85,7 @@ public class JwtUtil {
         return claims.getSubject();
     }
 
-    private List<String> getRoles(Claims claims) {
+    public List<String> getRoles(Claims claims) {
         return (List<String>)claims.get("roles");
     }
 }

@@ -14,24 +14,24 @@ import org.springframework.stereotype.Service;
 import com.example.backend.Repositories.UserRepository;
 
 @Service
-public class UserService implements UserDetailsService {
+public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    // @Autowired
+    // private UserRepository userRepository;
 
-    @Override
-    public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-        Users user = userRepository.findByUsername(userName);
-        List<String> roles = new ArrayList<>();
-        roles.add("USER");
-        UserDetails userDetails = 
-            org.springframework.security.core.userdetails.User.builder()
-            .username(user.getUsername())
-            .password(user.getPassword())
-            .roles(roles.toArray(new String[0]))
-            .build();
+    // @Override
+    // public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+    //     Users user = userRepository.findByUsername(userName);
+    //     List<String> roles = new ArrayList<>();
+    //     roles.add("USER");
+    //     UserDetails userDetails = 
+    //         org.springframework.security.core.userdetails.User.builder()
+    //         .username(user.getUsername())
+    //         .password(user.getPassword())
+    //         .roles(roles.toArray(new String[0]))
+    //         .build();
         
-        return userDetails;
-    }
+    //     return userDetails;
+    // }
 
 }

@@ -9,12 +9,12 @@ import lombok.Setter;
 /**
  * Users
  */
-@Entity
+// @Entity
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-// @MappedSuperclass
+@MappedSuperclass
 public class Users {
 
     @Id

@@ -4,6 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.example.backend.Entities.Admins;
+import java.util.List;
+
 
 
 @Repository
@@ -14,5 +16,7 @@ public interface AdminRepository extends JpaRepository<Admins, Integer> {
     Admins findByName(String name);
 
     Admins findByUsernameAndPassword(String username, String password);
+
+    Admins findByUsername(String username);
 
 } 

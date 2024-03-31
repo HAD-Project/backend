@@ -31,12 +31,15 @@ public class AuthController {
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(credentials.getUsername(), credentials.getPassword()));
             String name = authentication.getName();
+            String role = authentication.getAuthorities().toString();
+            System.out.println("Role: " + role);
             UserModel user = new UserModel();
             user.setUsername(name);
-            String token = jwtUtil.createToken(user);
+            String token = jwtUtil.createToken(user, role);
             LoginResModel loginRes = new LoginResModel();
             loginRes.setName(name);
             loginRes.setToken(token);
+            loginRes.setLoginType(credentials.getLoginType());
             return ResponseEntity.ok(loginRes);
         }
         catch (BadCredentialsException e) {

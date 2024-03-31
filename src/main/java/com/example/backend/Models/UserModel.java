@@ -14,5 +14,5 @@ public class UserModel {
     private String gender;
     private String username;
     private String password;
-    private int userType;
+    private String userType;
 }

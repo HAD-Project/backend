@@ -17,8 +17,8 @@ import java.util.List;
 @NoArgsConstructor
 public class Doctors extends Users {
 
-    @Column(name = "qualifications", nullable = false)
-    private String qualifications;
+    @Column(name = "qualifications")
+    private String qualifications = "default";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department")

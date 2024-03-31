@@ -36,11 +36,9 @@ public class Records {
 
     @ManyToOne
     @JoinColumn(name = "doctor_id")
-    @JoinColumn(name = "doctor_id")
     private Doctors doctor;
 
     @ManyToOne
-    @JoinColumn(name = "receptionist_id")
     @JoinColumn(name = "receptionist_id")
     private Receptionists receptionist;
 
