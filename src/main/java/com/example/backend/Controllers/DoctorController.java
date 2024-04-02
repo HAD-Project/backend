@@ -2,7 +2,6 @@ package com.example.backend.Controllers;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.backend.Services.DoctorService;
 import com.example.backend.Entities.Patients;
 import com.example.backend.Entities.Records;
 import com.example.backend.Models.RecordModel;
@@ -25,46 +24,4 @@ import java.util.List;
 @RequestMapping("/api/doctor")
 public class DoctorController {
 
-    @Autowired
-    private DoctorService doctorService;
-    
-    @GetMapping("/overview")
-    public String getOverview() {
-        return new String();
-    }
-
-    @GetMapping("/appointments")
-    public String getAppointments(@RequestParam Integer doctorId) {
-        return new String();
-    }
-    
-    @PostMapping("/request")
-    public String postMethodName(@RequestBody String entity) {
-        //TODO: process POST request
-        
-        return entity;
-    }
-    
-    @GetMapping("/getPatients")
-    public List<Patients> getPatients(@RequestParam Integer doctorId) {
-        return doctorService.getPatients(doctorId);
-    }
-
-    @GetMapping("/patient")
-    public Patients getPatient(@RequestParam Integer patientId) {
-        return doctorService.getPatient(patientId);
-    }
-
-    @PostMapping("/createRecord")
-    public ResponseEntity<Records> createRecord(@RequestBody RecordModel record) {
-        try {
-            Records createdRecord = doctorService.createRecord(record);
-            return ResponseEntity.ok().build();
-        }
-        catch (Exception e) {
-            System.out.println(e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-    
 }

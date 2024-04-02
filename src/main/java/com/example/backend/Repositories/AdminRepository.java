@@ -9,10 +9,5 @@ import com.example.backend.Entities.Admins;
 @Repository
 public interface AdminRepository extends JpaRepository<Admins, Integer> {
 
-    Admins findByUserId(int userId);
-    
-    Admins findByName(String name);
-
-    Admins findByUsernameAndPassword(String username, String password);
 
 } 
