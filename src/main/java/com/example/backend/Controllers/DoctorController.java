@@ -1,6 +1,7 @@
 package com.example.backend.Controllers;
 
 import com.example.backend.Entities.Doctors;
+import com.example.backend.Models.DoctorModel;
 import com.example.backend.Repositories.DepartmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
 import com.example.backend.Repositories.UserRepository;
@@ -38,6 +39,15 @@ public class DoctorController {
         try {
             Optional<Doctors> doctors = doctorRepository.findById(id);
             return ResponseEntity.of(Optional.of(doctors));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+    @PostMapping("/updateDoctor/{id}")
+    public ResponseEntity<Doctors> updateDoctor(@PathVariable int id,@RequestBody DoctorModel doctorModel) {
+        try {
+            
+            return ResponseEntity.of(Optional.of(doctorToBeUpdated));
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
