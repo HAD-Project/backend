@@ -17,8 +17,8 @@ public class Admins {
     @Column(name = "admin_id")
     private int adminId;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
+    @OneToOne(targetEntity = Users.class,cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id",referencedColumnName = "user_id")
     private Users user;
 
 }

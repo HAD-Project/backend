@@ -1,27 +1,45 @@
 package com.example.backend.Controllers;
 
-import org.springframework.web.bind.annotation.RestController;
+import com.example.backend.Entities.Doctors;
+import com.example.backend.Repositories.DepartmentRepository;
+import com.example.backend.Repositories.DoctorRepository;
+import com.example.backend.Repositories.UserRepository;
+import org.springframework.web.bind.annotation.*;
 
-import com.example.backend.Entities.Patients;
-import com.example.backend.Entities.Records;
-import com.example.backend.Models.RecordModel;
-
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.support.Repositories;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api/doctor")
+@RequestMapping("/api/v1/doctor")
 public class DoctorController {
+    @Autowired
+    private DoctorRepository doctorRepository;
+    @Autowired
+    private DepartmentRepository departmentRepository;
+    @Autowired
+    private UserRepository userRepository;
 
+    @GetMapping("/viewDoctors")
+    public ResponseEntity<List<Doctors>> getDoctors() {
+        try {
+            List<Doctors> doctors = doctorRepository.findAll();
+            return ResponseEntity.of(Optional.of(doctors));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+    @GetMapping("/viewDoctor/{id}")
+    public ResponseEntity<Optional<Doctors>> getDoctor(@PathVariable int id) {
+        try {
+            Optional<Doctors> doctors = doctorRepository.findById(id);
+            return ResponseEntity.of(Optional.of(doctors));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
 }

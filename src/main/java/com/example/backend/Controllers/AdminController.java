@@ -3,6 +3,8 @@ package com.example.backend.Controllers;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.backend.Entities.Admins;
+import com.example.backend.Repositories.DoctorRepository;
 import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.example.backend.Services.AdminServices;
 import com.example.backend.Entities.Doctors;
 import com.example.backend.Models.DoctorDeleteResponseModel;
 import com.example.backend.Models.DoctorModel;
@@ -22,10 +24,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/v1/admin")
 public class AdminController {
 
 
+//    private final AdminServices adminServices;
+//
+//    @Autowired
+//    public AdminController(AdminServices adminServices) {
+//        this.adminServices = adminServices;
+//    }
 //    @PostMapping("/createDoctor")
 //    public ResponseEntity<Doctors> createDoctor(@RequestBody DoctorModel doctorModel) {
 //        System.out.println(doctorModel.toString());
@@ -37,16 +45,11 @@ public class AdminController {
 //            return ResponseEntity.status(500).build();
 //        }
 //    }
-        @GetMapping("/getDoctors")
-        public String getDoctors() {
 
-            return "Doctors";
-
-        }
 //    @GetMapping("/getDoctors")
-//    public ResponseEntity<List<Doctors>> getDoctors() {
+//    public ResponseEntity<List<Admins>> getDoctors() {
 //        try {
-//            List<Doctors> doctors = adminServices.getDoctors();
+//            List<Admins> doctors = adminServices.getDoctors();
 //
 //            return ResponseEntity.of(Optional.of(doctors));
 //        } catch (Exception e) {

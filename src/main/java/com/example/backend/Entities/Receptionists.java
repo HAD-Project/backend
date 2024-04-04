@@ -20,8 +20,8 @@ public class Receptionists {
     @Column(name = "receptionist_id")
     private int receptionistId;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
+    @OneToOne(targetEntity = Users.class,cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id",referencedColumnName = "user_id")
     private Users user;
 
     @Column(name = "qualifications")
