@@ -30,25 +30,16 @@
 // import reactor.core.publisher.Mono;
 // import reactor.netty.http.client.HttpClientResponse;
 
-<<<<<<< HEAD
 // @Service
 // @Setter
 // @Getter
 // @PropertySource("classpath:application-dev.properties")
 // public class ABDMServices_Shrutik {
 //     private String RSAKey;
-=======
-@Service
-@Setter
-@Getter
-public class ABDMServices_Shrutik {
-    private String RSAKey;
->>>>>>> main
 
 //     private String hipAuthToken;
 //     private String hipRefreshToken;
 
-<<<<<<< HEAD
 //     @Value("${clientId}")
 //     @Getter(AccessLevel.NONE)
 //     @Setter(AccessLevel.NONE)
@@ -58,17 +49,6 @@ public class ABDMServices_Shrutik {
 //     @Getter(AccessLevel.NONE)
 //     @Setter(AccessLevel.NONE)
 //     private String clientSecret;
-=======
-    @Value("${api.clientId}")
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    private String clientId;
-
-    @Value("${api.clientSecret}")
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    private String clientSecret;
->>>>>>> main
 
 //     public void getRsaPublicKey() throws URISyntaxException {
 //         WebClient webClient = WebClient.create();
