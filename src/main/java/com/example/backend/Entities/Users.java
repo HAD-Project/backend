@@ -27,7 +27,7 @@ public class Users {
     @Column(name = "gender", nullable = false)
     private String gender;
 
-    @Column(name = "username", nullable = false)
+    @Column(name = "username", unique = true,nullable = false)
     private String username;
 
     @Column(name = "password", nullable = false)
@@ -35,6 +35,12 @@ public class Users {
 
     @Column(name = "user_type", nullable = false)
     private int userType;
+
+    @Column(name = "email", unique = true,nullable = false)
+    private String email;
+
+    @Column(name = "phone", unique = true,nullable = false)
+    private String phone;
 
 
 }

@@ -17,12 +17,15 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Receptionists extends Users{
+public class Receptionists extends Users {
 
     @Column(name = "qualifications")
     private String qualifications;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "receptionist")
+    @OneToMany
     private List<Appointments> appointments;
+
+    @Column(name="active",nullable = false)
+    private  boolean active;
 }
