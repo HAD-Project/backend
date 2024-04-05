@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Users
  */
-// @Entity
+@Entity
 @Getter
 @Setter
 @AllArgsConstructor
