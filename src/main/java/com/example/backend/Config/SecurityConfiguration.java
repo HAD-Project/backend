@@ -32,6 +32,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests()
                 .requestMatchers("/api/v1/auth/**")
                 .permitAll()
+                .requestMatchers("/api/receptionist/patients/**")
+                .permitAll()
                 .requestMatchers("/api/v1/doctor/**").hasAnyAuthority(ADMIN.name(),DOCTOR.name())
                 .requestMatchers(GET,"/api/v1/doctor/**")
                 .hasAnyAuthority(ADMIN_READ.name(),DOCTOR_READ.name())
