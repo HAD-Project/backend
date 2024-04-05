@@ -1,12 +1,10 @@
 package com.example.backend.Entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
 import java.util.List;
 
 @Entity
@@ -15,14 +13,24 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Doctors extends Users {
+@Builder
+public class Doctors  {
 
-    @Column(name = "qualifications", nullable = false)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "doctor_id")
+    private int doctorId;
+
+    @OneToOne(targetEntity = Users.class,cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id",referencedColumnName = "user_id")
+    private Users user;
+
+    @Column(name = "qualifications")
     private String qualifications;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department")
-    @JsonIgnoreProperties("doctors")
+    @JsonIgnore
     private Departments department;
 
     @ManyToMany(mappedBy = "treatedBy")
