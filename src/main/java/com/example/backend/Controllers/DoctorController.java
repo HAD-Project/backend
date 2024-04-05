@@ -46,10 +46,10 @@ public class DoctorController {
             return ResponseEntity.status(500).build();
         }
     }
-    @GetMapping("/viewDoctor/{id}")
-    public ResponseEntity<Optional<DoctorModel>> getDoctor(@PathVariable int id) {
+    @GetMapping("/viewDoctor/{email}")
+    public ResponseEntity<Optional<DoctorModel>> getDoctor(@PathVariable String email) {
         try {
-            Optional<Doctors> doctors = doctorRepository.findById(id);
+            Optional<Doctors> doctors = doctorRepository.findByUserEmail(email);
 
             Doctors doctor = doctors.get();
             DoctorModel doctorModel = new DoctorModel();
@@ -65,10 +65,12 @@ public class DoctorController {
             return ResponseEntity.status(500).build();
         }
     }
-    @PostMapping("/updateDoctor")
-    public ResponseEntity<String> updateDoctor(@RequestBody DoctorModel doctorModel) {
+    @PostMapping("/updateDoctor/{email}")
+    public ResponseEntity<String> updateDoctor(@PathVariable String email,@RequestBody DoctorModel doctorModel) {
         try {
-            Optional<Doctors> doctor = doctorRepository.findByUserEmail(doctorModel.getEmail());
+            Optional<Doctors> doctor = doctorRepository.findByUserEmail(email);
+            if(doctor.isEmpty())
+                return ResponseEntity.ok("Doctor doesn't Exists");
             Departments department = departmentRepository.findByName(doctorModel.getDepartment());
             Doctors doctorToBeUpdated = doctor.get();
             doctorToBeUpdated.getUser().setName(doctorModel.getName());
@@ -76,6 +78,7 @@ public class DoctorController {
             doctorToBeUpdated.getUser().setGender(doctorModel.getGender());
             doctorToBeUpdated.setQualifications(doctorModel.getQualifications());
             doctorToBeUpdated.setDepartment(department);
+            doctorRepository.save(doctorToBeUpdated);
             return ResponseEntity.ok("Succesfully Updated");
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
