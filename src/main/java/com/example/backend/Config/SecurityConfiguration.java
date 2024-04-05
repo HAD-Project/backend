@@ -38,6 +38,8 @@ public class SecurityConfiguration {
                 .requestMatchers(POST,"/api/v1/doctor/**").hasAnyAuthority(ADMIN_CREATE.name())
                 .requestMatchers(DELETE,"/api/v1/doctor/**").hasAnyAuthority(ADMIN_DELETE.name())
                 .requestMatchers(PUT,"/api/v1/doctor/**").hasAnyAuthority(ADMIN_UPDATE.name())
+                .requestMatchers(GET, "/api/abdm/getProfile").hasAnyAuthority(RECEPTIONIST.name())
+                .requestMatchers(POST, "/api/abdm/**").hasAnyAuthority(RECEPTIONIST.name())
                 .anyRequest()
                 .authenticated()
                 .and()

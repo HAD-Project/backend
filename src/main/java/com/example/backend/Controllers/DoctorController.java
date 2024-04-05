@@ -54,27 +54,27 @@ public class DoctorController {
         return new String();
     }
 
-    @GetMapping("/appointments")
-    public String getAppointments(@RequestParam Integer doctorId) {
-        return new String();
-    }
+//     @GetMapping("/appointments")
+//     public String getAppointments(@RequestParam Integer doctorId) {
+//         return new String();
+//     }
     
-    @PostMapping("/request")
-    public String postMethodName(@RequestBody String entity) {
-        //TODO: process POST request
+//     @PostMapping("/request")
+//     public String postMethodName(@RequestBody String entity) {
+//         //TODO: process POST request
         
-        return entity;
-    }
+//         return entity;
+//     }
     
-    @GetMapping("/getPatients")
-    public List<Patients> getPatients(@RequestParam Integer doctorId) {
-        return doctorService.getPatients(doctorId);
-    }
+//     @GetMapping("/getPatients")
+//     public List<Patients> getPatients(@RequestParam Integer doctorId) {
+//         return doctorService.getPatients(doctorId);
+//     }
 
-    @GetMapping("/patient")
-    public Patients getPatient(@RequestParam Integer patientId) {
-        return doctorService.getPatient(patientId);
-    }
+//     @GetMapping("/patient")
+//     public Patients getPatient(@RequestParam Integer patientId) {
+//         return doctorService.getPatient(patientId);
+//     }
 
     @PostMapping("/createRecord")
     public ResponseEntity<Records> createRecord(@RequestBody RecordModel toAdd) {
@@ -102,15 +102,15 @@ public class DoctorController {
         }
     }
 
-    @PostMapping("/patientAuthInit")
-    public Mono<ResponseEntity<PatienthAuthOnInitRes>> patientAuthInit(@RequestBody PatientAuthOnInitReq body) throws Exception {
-        return abdmServices.initPatientAuth(body.getAuthMethod(), body.getHealthid())
-            .map(ResponseEntity::ok)
-            .onErrorResume(e -> {
-                PatienthAuthOnInitRes errorRes = new PatienthAuthOnInitRes();
-                errorRes.setTxnId("-1");
-                return Mono.just(ResponseEntity.internalServerError().body(errorRes));
-            });
-    }
+//     @PostMapping("/patientAuthInit")
+//     public Mono<ResponseEntity<PatienthAuthOnInitRes>> patientAuthInit(@RequestBody PatientAuthOnInitReq body) throws Exception {
+//         return abdmServices.initPatientAuth(body.getAuthMethod(), body.getHealthid())
+//             .map(ResponseEntity::ok)
+//             .onErrorResume(e -> {
+//                 PatienthAuthOnInitRes errorRes = new PatienthAuthOnInitRes();
+//                 errorRes.setTxnId("-1");
+//                 return Mono.just(ResponseEntity.internalServerError().body(errorRes));
+//             });
+//     }
 
 }
