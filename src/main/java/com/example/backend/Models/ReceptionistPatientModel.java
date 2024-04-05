@@ -13,6 +13,7 @@ import java.util.Date;
 @Setter
 public class ReceptionistPatientModel {
     private String abha_available;
+    private String abha;
     private String name;
     private String sex;
     private Integer age;

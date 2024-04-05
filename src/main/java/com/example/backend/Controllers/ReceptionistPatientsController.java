@@ -2,9 +2,7 @@ package com.example.backend.Controllers;
 
 
 import com.example.backend.Entities.Patients;
-import com.example.backend.Models.LoginModel;
-import com.example.backend.Models.LoginResponseModel;
-import com.example.backend.Models.ReceptionistPatientModel;
+import com.example.backend.Models.*;
 import com.example.backend.Services.ReceptionistPatientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -32,12 +30,43 @@ public class ReceptionistPatientsController {
         }
     }
 
-    @GetMapping("/getPatients")
-    public List<Patients> getPatients() {
+    @GetMapping("")
+    public ResponseEntity<List<Patients>> getPatients() {
         try {
-            return receptionistPatientService.getPatients();
+            List<Patients> patients = receptionistPatientService.getPatients();
+            return ResponseEntity.of(Optional.of(patients));
         } catch (Exception e) {
-            return null;
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping("/patient/view")
+    public ResponseEntity<PatientInfoModel> getPatientData(@RequestParam Integer patientId) {
+        try {
+            PatientInfoModel patientInfo = receptionistPatientService.getPatientData(patientId);
+            return ResponseEntity.of(Optional.of(patientInfo));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @PutMapping("/patient/edit")
+    public ResponseEntity<String> updatePatient(@RequestBody PatientUpdateModel patientUpdateModel) {
+        try {
+            String res = receptionistPatientService.updatePatient(patientUpdateModel);
+            return ResponseEntity.of(Optional.of(res));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @DeleteMapping("/patient/delete")
+    public ResponseEntity<String> deletePatient(@RequestParam Integer patientId) {
+        try {
+            String res = receptionistPatientService.deletePatient(patientId);
+            return ResponseEntity.of(Optional.of(res));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
         }
     }
 }
