@@ -33,19 +33,18 @@ import reactor.netty.http.client.HttpClientResponse;
 @Service
 @Setter
 @Getter
-@PropertySource("classpath:application-dev.properties")
 public class ABDMServices_Shrutik {
     private String RSAKey;
 
     private String hipAuthToken;
     private String hipRefreshToken;
 
-    @Value("${clientId}")
+    @Value("${api.clientId}")
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private String clientId;
 
-    @Value("${clientSecret}")
+    @Value("${api.clientSecret}")
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private String clientSecret;
