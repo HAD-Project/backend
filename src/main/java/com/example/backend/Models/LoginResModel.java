@@ -11,5 +11,6 @@ import lombok.Setter;
 @Setter
 public class LoginResModel {
     private String name;
+    private String loginType;
     private String token;
 }
