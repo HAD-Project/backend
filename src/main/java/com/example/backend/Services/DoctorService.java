@@ -47,7 +47,7 @@ public class DoctorService {
    public List<Patients> getPatients(String token) {
        String email = jwtService.extractUsername(token);
        System.out.println("Email: " + email);
-       Doctors doctor = doctorRepository.findByUserEmail(email).get();
+       Doctors doctor = doctorRepository.findByUserEmailAndUserActiveTrue(email).get();
        List<Patients> patients = doctor.getTreats();
        return patients;
    }
@@ -57,9 +57,10 @@ public class DoctorService {
        return patient;
    }
 
-   public Records createRecord(RecordModel toAdd) {
+   public Records createRecord(String token, RecordModel toAdd) {
+       String email = jwtService.extractUsername(token);
        Records newRecord = new Records();
-       Doctors doctor = doctorRepository.findByDoctorId(toAdd.getDoctorId()).get();
+       Doctors doctor = doctorRepository.findByUserEmailAndUserActiveTrue(email).get();
        Patients patient = patientRepository.findByPatientId(toAdd.getPatientId());
        newRecord.setDoctor(doctor);
        newRecord.setPatient(patient);

@@ -2,6 +2,7 @@ package com.example.backend.Controllers;
 
 import com.example.backend.Entities.Departments;
 import com.example.backend.Entities.Doctors;
+import com.example.backend.Entities.Patients;
 import com.example.backend.Entities.Records;
 import com.example.backend.Models.DoctorModel;
 import com.example.backend.Models.RecordModel;
@@ -29,7 +30,6 @@ import java.util.Optional;
 
 @CrossOrigin
 @RestController
-@CrossOrigin
 @RequestMapping("/api/v1/doctor")
 public class DoctorController {
     @Autowired
@@ -42,9 +42,9 @@ public class DoctorController {
     @Autowired
     private DoctorService doctorService;
     @PostMapping("/createRecord")
-    public ResponseEntity<Records> createRecord(@RequestBody RecordModel toAdd) {
+    public ResponseEntity<Records> createRecord(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody RecordModel toAdd) {
         try {
-            Records record = doctorService.createRecord(toAdd);
+            Records record = doctorService.createRecord(token.split(" ")[1], toAdd);
             return ResponseEntity.ok().body(record);
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
