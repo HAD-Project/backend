@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.example.backend.Entities.Role.DOCTOR;
+
 
 @CrossOrigin
 @RestController
@@ -54,7 +56,7 @@ public class DoctorController {
     @GetMapping("/viewDoctors")
     public ResponseEntity<List<DoctorModel>> getDoctors() {
         try {
-            List<Doctors> doctors = doctorRepository.findAll();
+            List<Doctors> doctors = doctorRepository.findAllByUserActiveTrue();
             List<DoctorModel> viewDoctors = new ArrayList<>();
             for(Doctors doctor: doctors){
                 DoctorModel doctorModel = new DoctorModel();
@@ -63,6 +65,7 @@ public class DoctorController {
                 doctorModel.setGender(doctor.getUser().getGender());
                 doctorModel.setQualifications(doctor.getQualifications());
                 doctorModel.setDepartment(doctor.getDepartment().getName());
+                doctorModel.setPhone(doctor.getUser().getPhone());
                 viewDoctors.add(doctorModel);
             }
             return ResponseEntity.of(Optional.of(viewDoctors));
@@ -82,14 +85,35 @@ public class DoctorController {
             doctorModel.setGender(doctor.getUser().getGender());
             doctorModel.setQualifications(doctor.getQualifications());
             doctorModel.setDepartment(doctor.getDepartment().getName());
-
+            doctorModel.setPhone(doctor.getUser().getPhone());
             Optional<DoctorModel> viewDoctor = Optional.of(doctorModel);
             return ResponseEntity.of(Optional.of(viewDoctor));
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
     }
-    @PostMapping("/updateDoctor/{email}")
+    @PostMapping("/createDoctor")
+    public ResponseEntity<String> createDoctor(@RequestBody DoctorModel doctorModel) {
+        try {
+            Departments department = departmentRepository.findByName(doctorModel.getDepartment());
+            if(department==null)
+                return ResponseEntity.ok("Department doesn't Exists");
+            Doctors doctor = new Doctors();
+            doctor.getUser().setName(doctorModel.getName());
+            doctor.getUser().setEmail(doctorModel.getEmail());
+            doctor.getUser().setGender(doctorModel.getGender());
+            doctor.getUser().setUsername(doctorModel.getUsername());
+            doctor.getUser().setPhone(doctorModel.getPhone());
+            doctor.getUser().setRole(DOCTOR);
+            doctor.setQualifications(doctorModel.getQualifications());
+            doctor.setDepartment(department);
+            doctorRepository.save(doctor);
+            return ResponseEntity.ok("Succesfully created");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+    @PutMapping("/updateDoctor/{email}")
     public ResponseEntity<String> updateDoctor(@PathVariable String email,@RequestBody DoctorModel doctorModel) {
         try {
             Optional<Doctors> doctor = doctorRepository.findByUserEmailAndUserActiveTrue(email);
@@ -103,6 +127,7 @@ public class DoctorController {
             doctorToBeUpdated.getUser().setEmail(doctorModel.getEmail());
             doctorToBeUpdated.getUser().setGender(doctorModel.getGender());
             doctorToBeUpdated.setQualifications(doctorModel.getQualifications());
+            doctorToBeUpdated.getUser().setPhone(doctorModel.getPhone());
             doctorToBeUpdated.setDepartment(department);
             doctorRepository.save(doctorToBeUpdated);
             return ResponseEntity.ok("Succesfully Updated");

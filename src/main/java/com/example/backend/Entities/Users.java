@@ -2,6 +2,7 @@ package com.example.backend.Entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -59,8 +60,8 @@ public class Users implements UserDetails {
     @Column(name = "phone", unique = true,nullable = false)
     private BigInteger phone;
 
-    @Column(name="active",nullable = false,columnDefinition = "boolean default true")
-    private  boolean active;
+    @Column(name="active",nullable = false)
+    private  boolean active = true;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

@@ -1,3 +1,4 @@
+Delete from patients;
 DELETE FROM receptionists;
 DELETE FROM doctors;
 DELETE FROM admins;
