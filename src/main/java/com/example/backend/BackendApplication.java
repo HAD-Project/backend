@@ -19,13 +19,16 @@ import jakarta.annotation.PostConstruct;
 public class BackendApplication {
 
 	@Autowired
+	ABDMServices abdmServices;
+	
+	@Autowired
 	AdminRepository adminRepository;
 
 	@Autowired
 	DoctorRepository doctorRepository;
 
 	@Autowired
-	ABDMServices_Shrutik abdmServices;
+	ABDMServices_Shrutik abdmServices2;
 
 	public static void main(String[] args) {
 		System.out.println("Working");
