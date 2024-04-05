@@ -30,7 +30,7 @@ public class DoctorController {
     @GetMapping("/viewDoctors")
     public ResponseEntity<List<DoctorModel>> getDoctors() {
         try {
-            List<Doctors> doctors = doctorRepository.findAll();
+            List<Doctors> doctors = doctorRepository.findAllByUserActiveTrue();
             List<DoctorModel> viewDoctors = new ArrayList<>();
             for(Doctors doctor: doctors){
                 DoctorModel doctorModel = new DoctorModel();
@@ -49,7 +49,7 @@ public class DoctorController {
     @GetMapping("/viewDoctor/{email}")
     public ResponseEntity<Optional<DoctorModel>> getDoctor(@PathVariable String email) {
         try {
-            Optional<Doctors> doctors = doctorRepository.findByUserEmail(email);
+            Optional<Doctors> doctors = doctorRepository.findByUserEmailAndUserActiveTrue(email);
 
             Doctors doctor = doctors.get();
             DoctorModel doctorModel = new DoctorModel();
@@ -65,13 +65,15 @@ public class DoctorController {
             return ResponseEntity.status(500).build();
         }
     }
-    @PostMapping("/updateDoctor/{email}")
+    @PutMapping("/updateDoctor/{email}")
     public ResponseEntity<String> updateDoctor(@PathVariable String email,@RequestBody DoctorModel doctorModel) {
         try {
-            Optional<Doctors> doctor = doctorRepository.findByUserEmail(email);
+            Optional<Doctors> doctor = doctorRepository.findByUserEmailAndUserActiveTrue(email);
             if(doctor.isEmpty())
                 return ResponseEntity.ok("Doctor doesn't Exists");
             Departments department = departmentRepository.findByName(doctorModel.getDepartment());
+            if(department==null)
+                return ResponseEntity.ok("Department doesn't Exists");
             Doctors doctorToBeUpdated = doctor.get();
             doctorToBeUpdated.getUser().setName(doctorModel.getName());
             doctorToBeUpdated.getUser().setEmail(doctorModel.getEmail());
@@ -81,6 +83,20 @@ public class DoctorController {
             doctorRepository.save(doctorToBeUpdated);
             return ResponseEntity.ok("Succesfully Updated");
         } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+    @DeleteMapping("/deleteDoctor/{email}")
+    public ResponseEntity<String> deleteDoctor(@PathVariable String email) {
+        try{
+            Optional<Doctors> doctor = doctorRepository.findByUserEmailAndUserActiveTrue(email);
+            if(doctor.isEmpty())
+                return ResponseEntity.ok("Doctor doesn't Exists");
+            doctor.get().getUser().setActive(false);
+            doctorRepository.save(doctor.get());
+            return ResponseEntity.ok("Succesfully Deleted");
+        }
+        catch (Exception e){
             return ResponseEntity.status(500).build();
         }
     }

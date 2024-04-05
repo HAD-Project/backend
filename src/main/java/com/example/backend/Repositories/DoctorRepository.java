@@ -14,6 +14,7 @@ import com.example.backend.Entities.Doctors;
 
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctors, Integer> {
-    Optional<Doctors> findByUserEmail(String email);
+    Optional<Doctors> findByUserEmailAndUserActiveTrue(String email);
+    List<Doctors> findAllByUserActiveTrue();
     
 }
