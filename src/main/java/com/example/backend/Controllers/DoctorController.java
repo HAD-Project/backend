@@ -21,10 +21,13 @@ import com.example.backend.Repositories.DoctorRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +35,7 @@ import java.util.Optional;
 
 
 @RestController
+@CrossOrigin
 @RequestMapping("/api/v1/doctor")
 public class DoctorController {
     
@@ -112,5 +116,21 @@ public class DoctorController {
 //                 return Mono.just(ResponseEntity.internalServerError().body(errorRes));
 //             });
 //     }
+
+    @GetMapping("/getPatients")
+    public ResponseEntity<List<Patients>> getPatients(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        try {
+            System.out.println("Getting patients");
+            List<Patients> patients = doctorService.getPatients(token.split(" ")[1]);
+            if(patients == null) {
+                return ResponseEntity.ok().build();
+            }
+            return ResponseEntity.ok().body(patients);
+        }
+        catch (Exception e) {
+            System.out.println("Error occurred: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
 }

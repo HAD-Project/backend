@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.backend.Config.JwtService;
 import com.example.backend.Entities.Appointments;
 import com.example.backend.Entities.Doctors;
 import com.example.backend.Entities.Patients;
@@ -34,14 +35,19 @@ public class DoctorService {
    @Autowired
    private RecordRepository recordRepository;
 
+   @Autowired
+   private JwtService jwtService;
+
 //    public List<Appointments> getAppointments(Doctors doctor) {
 //        return appointmentService.findAppointmentsByDoctor(doctor);
 //    }
 
    private final String recordBasePath = "/home/shrutik/HAD/records/";
 
-   public List<Patients> getPatients(int doctorId) {
-       Doctors doctor = doctorRepository.findByDoctorId(doctorId).get();
+   public List<Patients> getPatients(String token) {
+       String email = jwtService.extractUsername(token);
+       System.out.println("Email: " + email);
+       Doctors doctor = doctorRepository.findByUserEmail(email).get();
        List<Patients> patients = doctor.getTreats();
        return patients;
    }
