@@ -20,7 +20,7 @@ import com.example.backend.Models.TxnIDModel;
 import com.example.backend.Models.XTokenModel;
 import com.example.backend.Services.ABDMServices;
 
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/abdm")
 public class ABDMController {
