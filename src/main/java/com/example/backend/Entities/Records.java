@@ -1,5 +1,7 @@
 package com.example.backend.Entities;
 
+import java.util.Date;
+
 import jakarta.persistence.*;
 
 @Entity(name = "Records")
@@ -64,4 +66,10 @@ public class Records {
     @ManyToOne
     @JoinColumn(name = "patient_id")
     private Patients patient;
+
+    @Column(name = "record_type")
+    private String recordType;
+
+    @Column(name = "date")
+    private Date date;
 }

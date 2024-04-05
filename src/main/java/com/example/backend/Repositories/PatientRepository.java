@@ -8,6 +8,6 @@ import com.example.backend.Entities.Patients;
 @Repository
 public interface PatientRepository extends JpaRepository<Patients, Integer> {
     
-    Patients findByPatientId(int patientId);
+    Patients findById(int patientId);
 
 }

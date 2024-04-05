@@ -13,11 +13,11 @@ import java.util.List;
 /**
  * Users
  */
+// @Entity
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
 @Builder
 public class Users implements UserDetails {
 

@@ -19,7 +19,6 @@ import com.example.backend.Entities.Doctors;
 import com.example.backend.Models.DoctorDeleteResponseModel;
 import com.example.backend.Models.DoctorModel;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @CrossOrigin
