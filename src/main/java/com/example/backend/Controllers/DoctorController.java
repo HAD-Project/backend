@@ -7,11 +7,16 @@ import com.example.backend.Services.DoctorService;
 
 import reactor.core.publisher.Mono;
 
+import com.example.backend.Entities.Departments;
+import com.example.backend.Entities.Doctors;
 import com.example.backend.Entities.Patients;
 import com.example.backend.Entities.Records;
+import com.example.backend.Models.DoctorModel;
 import com.example.backend.Models.RecordModel;
 import com.example.backend.Models.abdm.auth.patient.PatientAuthOnInitReq;
 import com.example.backend.Models.abdm.auth.patient.PatienthAuthOnInitRes;
+import com.example.backend.Repositories.DepartmentRepository;
+import com.example.backend.Repositories.DoctorRepository;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,15 +34,20 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/doctor")
 public class DoctorController {
+    
     @Autowired
     private DoctorRepository doctorRepository;
+    
     @Autowired
     private DepartmentRepository departmentRepository;
+    
     @Autowired
     private DoctorService doctorService;
 
     @Autowired
     ABDMServices_Shrutik abdmServices;
+
+    @Autowired
     
     @GetMapping("/overview")
     public String getOverview() {
@@ -67,20 +77,10 @@ public class DoctorController {
     }
 
     @PostMapping("/createRecord")
-    public ResponseEntity<Records> createRecord(@RequestBody RecordModel record) {
+    public ResponseEntity<Records> createRecord(@RequestBody RecordModel toAdd) {
         try {
-            Optional<Doctors> doctors = doctorRepository.findById(id);
-
-            Doctors doctor = doctors.get();
-            DoctorModel doctorModel = new DoctorModel();
-            doctorModel.setName(doctor.getUser().getName());
-            doctorModel.setEmail(doctor.getUser().getEmail());
-            doctorModel.setGender(doctor.getUser().getGender());
-            doctorModel.setQualifications(doctor.getQualifications());
-            doctorModel.setDepartment(doctor.getDepartment().getName());
-
-            Optional<DoctorModel> viewDoctor = Optional.of(doctorModel);
-            return ResponseEntity.of(Optional.of(viewDoctor));
+            Records record = doctorService.createRecord(toAdd);
+            return ResponseEntity.ok().body(record);
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
