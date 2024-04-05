@@ -37,10 +37,8 @@ public class ReceptionistPatientService {
     }
 
     public List<Patients> getPatients(){
-        List<Patients> res = new ArrayList<>();
-        res = patientRepository.findAll();
+        return patientRepository.findAll();
 
-        return res;
     }
 
     public PatientInfoModel getPatientData(int patientId){
