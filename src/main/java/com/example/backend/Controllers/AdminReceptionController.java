@@ -1,6 +1,7 @@
 package com.example.backend.Controllers;
 
 import com.example.backend.Entities.Receptionists;
+import com.example.backend.Entities.Role;
 import com.example.backend.Exception.ResourceNotFound;
 import com.example.backend.Repositories.ReceptionRepository;
 import org.springframework.http.ResponseEntity;
@@ -27,33 +28,4 @@ public class AdminReceptionController {
         return receptionRepository.findAll();
     }
 
-    @PostMapping("/addReceptionist")
-    public Receptionists createReceptionist(@RequestBody Receptionists receptionist){
-        receptionist.setUserType(1);
-        receptionist.setActive(true);
-        return receptionRepository.save(receptionist);
-    }
-    @PutMapping("/receptionist/{id}")
-    public ResponseEntity<Receptionists> updateReceptionistById(@PathVariable int id, @RequestBody Receptionists receptionistsDetails){
-        Receptionists receptionists= receptionRepository.findById(id).orElseThrow(()->new ResourceNotFound("Receptionists not exists with id :"+id));
-
-        receptionists.setName(receptionistsDetails.getName());
-        receptionists.setEmail(receptionistsDetails.getEmail());
-        receptionists.setGender(receptionistsDetails.getGender());
-        receptionists.setUsername(receptionistsDetails.getUsername());
-        receptionists.setPhone(receptionistsDetails.getPhone());
-        receptionists.setQualifications(receptionistsDetails.getQualifications());
-
-        Receptionists updatedreceptionists = receptionRepository.save(receptionists);
-        return ResponseEntity.ok(updatedreceptionists);
-    }
-
-    @DeleteMapping("/receptionist/{id}")
-    public ResponseEntity<Map<String,Boolean>> deleteReceptionist(@PathVariable int id){
-        Receptionists receptionist = receptionRepository.findById(id).orElseThrow(()->new ResourceNotFound("Receptionists not exists with id :"+id));
-        receptionRepository.delete(receptionist);
-        Map<String,Boolean> response = new HashMap<>();
-        response.put("deleted",Boolean.TRUE);
-        return ResponseEntity.ok(response);
-    }
 }
