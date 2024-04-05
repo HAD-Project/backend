@@ -34,6 +34,8 @@ public class SecurityConfiguration {
                 .permitAll()
                 .requestMatchers("/api/v1/auth/register")
                 .hasAuthority(ADMIN.name())
+                .requestMatchers("/api/receptionist/patients/**")
+                .permitAll()
                 .requestMatchers("/api/v1/doctor/**").hasAnyAuthority(ADMIN.name(),DOCTOR.name())
                 .requestMatchers(GET,"/api/v1/doctor/**")
                 .hasAnyAuthority(ADMIN_READ.name(),DOCTOR_READ.name())

@@ -1,6 +1,9 @@
 package com.example.backend.Services;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +17,11 @@ import com.example.backend.Repositories.PatientRepository;
 import com.example.backend.Entities.Records;
 import com.example.backend.Models.RecordModel;
 import com.example.backend.Repositories.RecordRepository;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
@@ -64,12 +71,14 @@ public class DoctorService {
        Patients patient = patientRepository.findByPatientId(toAdd.getPatientId());
        newRecord.setDoctor(doctor);
        newRecord.setPatient(patient);
+       newRecord.setRecordType(toAdd.getRecordType());
        try {
            File record = new File(recordBasePath + toAdd.getPatientId() + "_" + toAdd.getDate());
            if(record.createNewFile()) {
                FileWriter writer = new FileWriter(record);
                writer.write(toAdd.getText());
                writer.close();
+               newRecord.setFilePath(recordBasePath + toAdd.getPatientId() + "_" + toAdd.getDate());
                System.out.println("Record created");
                return recordRepository.save(newRecord);
            }
@@ -83,7 +92,26 @@ public class DoctorService {
            e.printStackTrace();
            return null;
        }
-
    }
 
+
+   public List<RecordModel> getRecords(int patientId) throws FileNotFoundException {
+    Patients patient = patientRepository.findByPatientId(patientId);
+    List<Records> records = patient.getRecords();
+    List<RecordModel> res = new ArrayList<>();
+    for(Records r : records) {
+        File f = new File(r.getFilePath());
+        Scanner sc = new Scanner(f);
+        StringBuilder sb = new StringBuilder();
+        while(sc.hasNextLine()) {
+            sb.append(sc.nextLine());
+        }
+        sc.close();
+        RecordModel toAdd = new RecordModel();
+        toAdd.setText(sb.toString());
+        toAdd.setRecordType(r.getRecordType());
+        res.add(toAdd);
+    }
+    return res;
+   }
 }

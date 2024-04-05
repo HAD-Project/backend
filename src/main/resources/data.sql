@@ -12,4 +12,5 @@ INSERT INTO departments (DEPT_ID, NAME) VALUES (1,'SOME DEPARTMENT');
 insert into admins (admins.ADMIN_ID, admins.USER_ID) values (1,1);
 insert into doctors (doctors.doctor_id,qualifications, department, user_id) VALUES (1,'MBBS',1,2);
 INSERT INTO receptionists (receptionists.receptionist_id,qualifications, user_id) VALUES (1,'B.COM',3);
-INSERT INTO patients (patient_id, dob, abha_id, gender, mobile_no, name) VALUES (1, "2001-08-15", "91-2211-7286-2445", "M", "9324846868", "Shrutik")
+INSERT INTO patients (patient_id, dob, abha_id, gender, mobile_no, name) VALUES (1, "2001-08-15", "91-2211-7286-2445", "M", "9324846868", "Shrutik");
+INSERT INTO patients_treated_by(treated_by_doctor_id, treats_patient_id) values (1, 1);
