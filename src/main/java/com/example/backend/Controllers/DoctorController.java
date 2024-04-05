@@ -45,7 +45,7 @@ public class DoctorController {
     public ResponseEntity<Records> createRecord(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody RecordModel toAdd) {
         try {
             Records record = doctorService.createRecord(token.split(" ")[1], toAdd);
-            return ResponseEntity.ok().body(record);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
@@ -148,6 +148,30 @@ public class DoctorController {
         }
         catch (Exception e) {
             System.out.println("Error occurred: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/patient")
+    public ResponseEntity<Patients> getOnePatient(@RequestParam int patientId) {
+        try {
+            Patients patient = doctorService.getPatient(patientId);
+            return ResponseEntity.ok().body(patient);
+        }
+        catch (Exception e) {
+            System.out.println("Error in getting one patient: " + e.getLocalizedMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/getRecords")
+    public ResponseEntity<List<RecordModel>> getRecords(@RequestParam int patientId) {
+        try {
+            List<RecordModel> records = doctorService.getRecords(patientId);
+            return ResponseEntity.ok().body(records);
+        }
+        catch (Exception e) {
+            System.out.println("Error in getting patient records: " + e.getLocalizedMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
