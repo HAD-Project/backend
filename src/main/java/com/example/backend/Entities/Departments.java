@@ -24,7 +24,7 @@ public class Departments {
     @Column(name = "dept_id")
     private int id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name",unique = true,nullable = false)
     private String name;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "department", orphanRemoval = true)

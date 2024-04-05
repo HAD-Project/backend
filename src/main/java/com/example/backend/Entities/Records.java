@@ -2,23 +2,9 @@ package com.example.backend.Entities;
 
 import java.util.Date;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
 
 @Entity(name = "Records")
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
 public class Records {
 
     @Id
@@ -28,6 +14,46 @@ public class Records {
 
     @Column(name = "file_path")
     private String filePath;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public void setDoctor(Doctors doctor) {
+        this.doctor = doctor;
+    }
+
+    public void setReceptionist(Receptionists receptionist) {
+        this.receptionist = receptionist;
+    }
+
+    public void setPatient(Patients patient) {
+        this.patient = patient;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public Doctors getDoctor() {
+        return doctor;
+    }
+
+    public Receptionists getReceptionist() {
+        return receptionist;
+    }
+
+    public Patients getPatient() {
+        return patient;
+    }
 
     @ManyToOne
     @JoinColumn(name = "doctor_id")

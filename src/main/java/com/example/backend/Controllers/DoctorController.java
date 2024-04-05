@@ -21,13 +21,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @RestController
-@RequestMapping("/api/doctor")
+@RequestMapping("/api/v1/doctor")
 public class DoctorController {
-
+    @Autowired
+    private DoctorRepository doctorRepository;
+    @Autowired
+    private DepartmentRepository departmentRepository;
     @Autowired
     private DoctorService doctorService;
 
@@ -64,25 +69,36 @@ public class DoctorController {
     @PostMapping("/createRecord")
     public ResponseEntity<Records> createRecord(@RequestBody RecordModel record) {
         try {
-            doctorService.createRecord(record);
-            return ResponseEntity.ok().build();
-        }
-        catch (Exception e) {
-            System.out.println(e.getMessage());
-            return ResponseEntity.internalServerError().build();
+            Optional<Doctors> doctors = doctorRepository.findById(id);
+
+            Doctors doctor = doctors.get();
+            DoctorModel doctorModel = new DoctorModel();
+            doctorModel.setName(doctor.getUser().getName());
+            doctorModel.setEmail(doctor.getUser().getEmail());
+            doctorModel.setGender(doctor.getUser().getGender());
+            doctorModel.setQualifications(doctor.getQualifications());
+            doctorModel.setDepartment(doctor.getDepartment().getName());
+
+            Optional<DoctorModel> viewDoctor = Optional.of(doctorModel);
+            return ResponseEntity.of(Optional.of(viewDoctor));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
         }
     }
-
-    @GetMapping("/getRecords")
-    public ResponseEntity<List<RecordModel>> getMethodName(@RequestParam Integer patientId) {
+    @PostMapping("/updateDoctor")
+    public ResponseEntity<String> updateDoctor(@RequestBody DoctorModel doctorModel) {
         try {
-            List<RecordModel> records = doctorService.getRecords(patientId);
-            return ResponseEntity.ok().body(records);
-        }
-        catch (Exception e) {
-            System.out.println(e.getLocalizedMessage());
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            Optional<Doctors> doctor = doctorRepository.findByUserEmail(doctorModel.getEmail());
+            Departments department = departmentRepository.findByName(doctorModel.getDepartment());
+            Doctors doctorToBeUpdated = doctor.get();
+            doctorToBeUpdated.getUser().setName(doctorModel.getName());
+            doctorToBeUpdated.getUser().setEmail(doctorModel.getEmail());
+            doctorToBeUpdated.getUser().setGender(doctorModel.getGender());
+            doctorToBeUpdated.setQualifications(doctorModel.getQualifications());
+            doctorToBeUpdated.setDepartment(department);
+            return ResponseEntity.ok("Succesfully Updated");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
         }
     }
 
