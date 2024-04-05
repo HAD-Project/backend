@@ -9,6 +9,7 @@ import com.example.backend.Repositories.DepartmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
 import com.example.backend.Repositories.UserRepository;
 import com.example.backend.Services.ABDMServices_Shrutik;
+import com.example.backend.Services.DoctorService;
 import org.springframework.web.bind.annotation.*;
 import com.example.backend.Models.abdm.auth.patient.PatientAuthOnInitReq;
 import com.example.backend.Models.abdm.auth.patient.PatienthAuthOnInitRes;
@@ -31,6 +32,8 @@ public class DoctorController {
     @Autowired
     ABDMServices_Shrutik abdmServices;
 
+    @Autowired
+    private DoctorService doctorService;
     @PostMapping("/createRecord")
     public ResponseEntity<Records> createRecord(@RequestBody RecordModel toAdd) {
         try {
@@ -63,7 +66,7 @@ public class DoctorController {
     @GetMapping("/viewDoctor/{email}")
     public ResponseEntity<Optional<DoctorModel>> getDoctor(@PathVariable String email) {
         try {
-            Optional<Doctors> doctors = doctorRepository.findByUserEmail(email);
+            Optional<Doctors> doctors = doctorRepository.findByUserEmailAndUserActiveTrue(email);
 
             Doctors doctor = doctors.get();
             DoctorModel doctorModel = new DoctorModel();
@@ -82,7 +85,7 @@ public class DoctorController {
     @PostMapping("/updateDoctor/{email}")
     public ResponseEntity<String> updateDoctor(@PathVariable String email,@RequestBody DoctorModel doctorModel) {
         try {
-            Optional<Doctors> doctor = doctorRepository.findByUserEmail(email);
+            Optional<Doctors> doctor = doctorRepository.findByUserEmailAndUserActiveTrue(email);
             if(doctor.isEmpty())
                 return ResponseEntity.ok("Doctor doesn't Exists");
             Departments department = departmentRepository.findByName(doctorModel.getDepartment());
