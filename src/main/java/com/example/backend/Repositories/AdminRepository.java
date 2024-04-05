@@ -10,4 +10,6 @@ import com.example.backend.Entities.Admins;
 public interface AdminRepository extends JpaRepository<Admins, Integer> {
 
 
+    Admins findByUsername(String username);
+
 } 
