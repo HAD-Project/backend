@@ -10,8 +10,8 @@ import lombok.*;
 @Data
 public class DoctorModel {
     private String name;
-    private String username;
-    private String password;
+    private String email;
+//    private String password;
     private String gender;
     private String qualifications;
     private String department;

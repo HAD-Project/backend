@@ -1,6 +1,7 @@
 package com.example.backend.Repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.example.backend.Models.DoctorModel;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,6 +14,6 @@ import com.example.backend.Entities.Doctors;
 
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctors, Integer> {
-
+    Optional<Doctors> findByUserEmail(String email);
     
 }
