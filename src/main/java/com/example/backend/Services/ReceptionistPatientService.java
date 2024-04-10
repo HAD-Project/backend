@@ -31,6 +31,7 @@ public class ReceptionistPatientService {
         newPatient.setDob(date);
         newPatient.setMobileNo(receptionistPatientModel.getPhoneNumber());
         newPatient.setAbhaId(receptionistPatientModel.getAbha());
+        newPatient.setAbhaAddress(receptionistPatientModel.getAbhaAddress());
 //                add address ,age,blood group
 
         return patientRepository.save(newPatient);

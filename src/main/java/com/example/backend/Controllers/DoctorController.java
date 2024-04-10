@@ -9,11 +9,12 @@ import com.example.backend.Models.RecordModel;
 import com.example.backend.Repositories.DepartmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
 import com.example.backend.Repositories.UserRepository;
-import com.example.backend.Services.ABDMServices_Shrutik;
+import com.example.backend.Services.ABDMServices;
 import com.example.backend.Services.DoctorService;
+
+import reactor.core.publisher.Mono;
+
 import org.springframework.web.bind.annotation.*;
-import com.example.backend.Models.abdm.auth.patient.PatientAuthOnInitReq;
-import com.example.backend.Models.abdm.auth.patient.PatienthAuthOnInitRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -38,17 +39,19 @@ public class DoctorController {
     private DoctorRepository doctorRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
+
     @Autowired
-    ABDMServices_Shrutik abdmServices;
+    private ABDMServices abdmServices;
 
     @Autowired
     private DoctorService doctorService;
     @PostMapping("/createRecord")
     public ResponseEntity<Records> createRecord(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody RecordModel toAdd) {
         try {
-            Records record = doctorService.createRecord(token.split(" ")[1], toAdd);
+            doctorService.createRecord(token.split(" ")[1], toAdd);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            System.out.println("Error in creating record: " + e.getMessage());
             return ResponseEntity.status(500).build();
         }
     }
@@ -150,17 +153,6 @@ public class DoctorController {
         }
     }
 
-//     @PostMapping("/patientAuthInit")
-//     public Mono<ResponseEntity<PatienthAuthOnInitRes>> patientAuthInit(@RequestBody PatientAuthOnInitReq body) throws Exception {
-//         return abdmServices.initPatientAuth(body.getAuthMethod(), body.getHealthid())
-//             .map(ResponseEntity::ok)
-//             .onErrorResume(e -> {
-//                 PatienthAuthOnInitRes errorRes = new PatienthAuthOnInitRes();
-//                 errorRes.setTxnId("-1");
-//                 return Mono.just(ResponseEntity.internalServerError().body(errorRes));
-//             });
-//     }
-
     @GetMapping("/getPatients")
     public ResponseEntity<List<Patients>> getPatients(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         try {
@@ -198,6 +190,22 @@ public class DoctorController {
         catch (Exception e) {
             System.out.println("Error in getting patient records: " + e.getLocalizedMessage());
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/generateLinkToken")
+    public Mono<ResponseEntity<Object>> generateLinkToken(@RequestParam String abhaAddress) {
+        try {
+            return abdmServices.generateLinkingToken(abhaAddress)
+                .then(Mono.just(ResponseEntity.ok().build()))
+                .onErrorResume(e -> {
+                    System.out.println("Error in creating linking token: " + e.getMessage());
+                    return Mono.just(ResponseEntity.internalServerError().build());
+                });
+        }
+        catch (Exception e) {
+            System.out.println("Error in creating linking token: " + e.getLocalizedMessage());
+            return Mono.just(ResponseEntity.internalServerError().build());
         }
     }
 

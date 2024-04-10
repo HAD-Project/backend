@@ -33,5 +33,4 @@ public class PatientProfileModel {
     private String villageName;
     private String townName;
     private String wardName;           
-
 }

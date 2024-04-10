@@ -3,7 +3,11 @@ package com.example.backend.Controllers;
 
 import com.example.backend.Entities.Patients;
 import com.example.backend.Models.*;
+import com.example.backend.Services.ABDMServices;
 import com.example.backend.Services.ReceptionistPatientService;
+
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +22,9 @@ public class ReceptionistPatientsController {
     @Autowired
     private ReceptionistPatientService receptionistPatientService;
 
+    @Autowired
+    ABDMServices abdmServices;
+
     @PostMapping("/register")
     public ResponseEntity<Patients> addPatient(@RequestBody ReceptionistPatientModel receptionistPatientModel) {
         System.out.println(receptionistPatientModel.toString());
@@ -26,6 +33,7 @@ public class ReceptionistPatientsController {
 
             return ResponseEntity.of(Optional.of(patients));
         } catch (Exception e) {
+            System.out.println("Error in registering patient: " + e.getLocalizedMessage());
             return ResponseEntity.status(500).build();
         }
     }
@@ -67,6 +75,22 @@ public class ReceptionistPatientsController {
             return ResponseEntity.of(Optional.of(res));
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
+        }
+    }
+
+    @PostMapping("/generateLinkToken")
+    public Mono<ResponseEntity<Object>> generateLinkToken(@RequestParam String abhaAddress) {
+        try {
+            return abdmServices.generateLinkingToken(abhaAddress)
+                .then(Mono.just(ResponseEntity.ok().build()))
+                .onErrorResume(e -> {
+                    System.out.println("Error in creating linking token: " + e.getMessage());
+                    return Mono.just(ResponseEntity.internalServerError().build());
+                });
+        }
+        catch (Exception e) {
+            System.out.println("Error in creating linking token: " + e.getLocalizedMessage());
+            return Mono.just(ResponseEntity.internalServerError().build());
         }
     }
 }

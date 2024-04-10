@@ -16,4 +16,5 @@ public class RecordModel {
     String text;
     String recordType;
     String date;
+    String display;
 }

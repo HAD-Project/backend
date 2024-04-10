@@ -80,4 +80,14 @@ public class Records {
 
     @Column(name = "date")
     private Date date;
+
+    @Column(name = "status")
+    private String status;
+
+    @OneToOne
+    @JoinColumn(name = "context_id", referencedColumnName = "referenceNumber")
+    CareContext careContext;
+
+    @Column(name = "display")
+    private String display;
 }
