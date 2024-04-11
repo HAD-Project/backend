@@ -9,11 +9,16 @@ import com.example.backend.Models.RecordModel;
 import com.example.backend.Repositories.DepartmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
 import com.example.backend.Repositories.UserRepository;
+<<<<<<< HEAD
 // import com.example.backend.Services.ABDMServices_Shrutik;
+=======
+import com.example.backend.Services.ABDMServices;
+>>>>>>> main
 import com.example.backend.Services.DoctorService;
+
+import reactor.core.publisher.Mono;
+
 import org.springframework.web.bind.annotation.*;
-import com.example.backend.Models.abdm.auth.patient.PatientAuthOnInitReq;
-import com.example.backend.Models.abdm.auth.patient.PatienthAuthOnInitRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.example.backend.Entities.Role.DOCTOR;
+
 
 @CrossOrigin
 @RestController
@@ -36,17 +43,24 @@ public class DoctorController {
     private DoctorRepository doctorRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
+<<<<<<< HEAD
     // @Autowired
     // // ABDMServices_Shrutik abdmServices;
+=======
+
+    @Autowired
+    private ABDMServices abdmServices;
+>>>>>>> main
 
     @Autowired
     private DoctorService doctorService;
     @PostMapping("/createRecord")
     public ResponseEntity<Records> createRecord(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody RecordModel toAdd) {
         try {
-            Records record = doctorService.createRecord(token.split(" ")[1], toAdd);
-            return ResponseEntity.ok().body(record);
+            doctorService.createRecord(token.split(" ")[1], toAdd);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
+            System.out.println("Error in creating record: " + e.getMessage());
             return ResponseEntity.status(500).build();
         }
     }
@@ -54,7 +68,7 @@ public class DoctorController {
     @GetMapping("/viewDoctors")
     public ResponseEntity<List<DoctorModel>> getDoctors() {
         try {
-            List<Doctors> doctors = doctorRepository.findAll();
+            List<Doctors> doctors = doctorRepository.findAllByUserActiveTrue();
             List<DoctorModel> viewDoctors = new ArrayList<>();
             for(Doctors doctor: doctors){
                 DoctorModel doctorModel = new DoctorModel();
@@ -63,6 +77,7 @@ public class DoctorController {
                 doctorModel.setGender(doctor.getUser().getGender());
                 doctorModel.setQualifications(doctor.getQualifications());
                 doctorModel.setDepartment(doctor.getDepartment().getName());
+                doctorModel.setPhone(doctor.getUser().getPhone());
                 viewDoctors.add(doctorModel);
             }
             return ResponseEntity.of(Optional.of(viewDoctors));
@@ -82,14 +97,35 @@ public class DoctorController {
             doctorModel.setGender(doctor.getUser().getGender());
             doctorModel.setQualifications(doctor.getQualifications());
             doctorModel.setDepartment(doctor.getDepartment().getName());
-
+            doctorModel.setPhone(doctor.getUser().getPhone());
             Optional<DoctorModel> viewDoctor = Optional.of(doctorModel);
             return ResponseEntity.of(Optional.of(viewDoctor));
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
     }
-    @PostMapping("/updateDoctor/{email}")
+    @PostMapping("/createDoctor")
+    public ResponseEntity<String> createDoctor(@RequestBody DoctorModel doctorModel) {
+        try {
+            Departments department = departmentRepository.findByName(doctorModel.getDepartment());
+            if(department==null)
+                return ResponseEntity.ok("Department doesn't Exists");
+            Doctors doctor = new Doctors();
+            doctor.getUser().setName(doctorModel.getName());
+            doctor.getUser().setEmail(doctorModel.getEmail());
+            doctor.getUser().setGender(doctorModel.getGender());
+            doctor.getUser().setUsername(doctorModel.getUsername());
+            doctor.getUser().setPhone(doctorModel.getPhone());
+            doctor.getUser().setRole(DOCTOR);
+            doctor.setQualifications(doctorModel.getQualifications());
+            doctor.setDepartment(department);
+            doctorRepository.save(doctor);
+            return ResponseEntity.ok("Succesfully created");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+    @PutMapping("/updateDoctor/{email}")
     public ResponseEntity<String> updateDoctor(@PathVariable String email,@RequestBody DoctorModel doctorModel) {
         try {
             Optional<Doctors> doctor = doctorRepository.findByUserEmailAndUserActiveTrue(email);
@@ -103,6 +139,7 @@ public class DoctorController {
             doctorToBeUpdated.getUser().setEmail(doctorModel.getEmail());
             doctorToBeUpdated.getUser().setGender(doctorModel.getGender());
             doctorToBeUpdated.setQualifications(doctorModel.getQualifications());
+            doctorToBeUpdated.getUser().setPhone(doctorModel.getPhone());
             doctorToBeUpdated.setDepartment(department);
             doctorRepository.save(doctorToBeUpdated);
             return ResponseEntity.ok("Succesfully Updated");
@@ -125,17 +162,6 @@ public class DoctorController {
         }
     }
 
-//     @PostMapping("/patientAuthInit")
-//     public Mono<ResponseEntity<PatienthAuthOnInitRes>> patientAuthInit(@RequestBody PatientAuthOnInitReq body) throws Exception {
-//         return abdmServices.initPatientAuth(body.getAuthMethod(), body.getHealthid())
-//             .map(ResponseEntity::ok)
-//             .onErrorResume(e -> {
-//                 PatienthAuthOnInitRes errorRes = new PatienthAuthOnInitRes();
-//                 errorRes.setTxnId("-1");
-//                 return Mono.just(ResponseEntity.internalServerError().body(errorRes));
-//             });
-//     }
-
     @GetMapping("/getPatients")
     public ResponseEntity<List<Patients>> getPatients(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         try {
@@ -149,6 +175,46 @@ public class DoctorController {
         catch (Exception e) {
             System.out.println("Error occurred: " + e.getMessage());
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/patient")
+    public ResponseEntity<Patients> getOnePatient(@RequestParam int patientId) {
+        try {
+            Patients patient = doctorService.getPatient(patientId);
+            return ResponseEntity.ok().body(patient);
+        }
+        catch (Exception e) {
+            System.out.println("Error in getting one patient: " + e.getLocalizedMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/getRecords")
+    public ResponseEntity<List<RecordModel>> getRecords(@RequestParam int patientId) {
+        try {
+            List<RecordModel> records = doctorService.getRecords(patientId);
+            return ResponseEntity.ok().body(records);
+        }
+        catch (Exception e) {
+            System.out.println("Error in getting patient records: " + e.getLocalizedMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/generateLinkToken")
+    public Mono<ResponseEntity<Object>> generateLinkToken(@RequestParam String abhaAddress) {
+        try {
+            return abdmServices.generateLinkingToken(abhaAddress)
+                .then(Mono.just(ResponseEntity.ok().build()))
+                .onErrorResume(e -> {
+                    System.out.println("Error in creating linking token: " + e.getMessage());
+                    return Mono.just(ResponseEntity.internalServerError().build());
+                });
+        }
+        catch (Exception e) {
+            System.out.println("Error in creating linking token: " + e.getLocalizedMessage());
+            return Mono.just(ResponseEntity.internalServerError().build());
         }
     }
 

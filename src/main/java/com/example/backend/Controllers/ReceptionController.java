@@ -30,6 +30,8 @@ public class ReceptionController {
                 receptionistModel.setName(receptionist.getUser().getName());
                 receptionistModel.setEmail(receptionist.getUser().getEmail());
                 receptionistModel.setGender(receptionist.getUser().getGender());
+                receptionistModel.setPhone(receptionist.getUser().getPhone());
+                receptionistModel.setUsername(receptionist.getUser().getUsername());
                 receptionistModel.setQualifications(receptionist.getQualifications());
                 viewReceptionist.add(receptionistModel);
             }
@@ -48,6 +50,8 @@ public class ReceptionController {
             receptionistModel.setName(receptionist.getUser().getName());
             receptionistModel.setEmail(receptionist.getUser().getEmail());
             receptionistModel.setGender(receptionist.getUser().getGender());
+            receptionistModel.setPhone(receptionist.getUser().getPhone());
+            receptionistModel.setUsername(receptionist.getUser().getUsername());
             receptionistModel.setQualifications(receptionist.getQualifications());
             Optional<ReceptionistModel> viewReceptionist = Optional.of(receptionistModel);
             return ResponseEntity.of(Optional.of(viewReceptionist));
@@ -65,6 +69,8 @@ public class ReceptionController {
             receptionistToBeUpdated.getUser().setName(receptionistModel.getName());
             receptionistToBeUpdated.getUser().setEmail(receptionistModel.getEmail());
             receptionistToBeUpdated.getUser().setGender(receptionistModel.getGender());
+            receptionistToBeUpdated.getUser().setPhone(receptionistModel.getPhone());
+            receptionistToBeUpdated.getUser().setUsername(receptionistModel.getUsername());
             receptionistToBeUpdated.setQualifications(receptionistModel.getQualifications());
             receptionRepository.save(receptionistToBeUpdated);
             return ResponseEntity.ok("Succesfully Updated");
@@ -77,7 +83,7 @@ public class ReceptionController {
         try{
             Optional<Receptionists> receptionist = receptionRepository.findByUserEmailAndUserActiveTrue(email);
             if(receptionist.isEmpty())
-                return ResponseEntity.ok("Doctor doesn't Exists");
+                return ResponseEntity.ok("Receptionist doesn't Exists");
             receptionist.get().getUser().setActive(false);
             receptionRepository.save(receptionist.get());
             return ResponseEntity.ok("Succesfully Deleted");

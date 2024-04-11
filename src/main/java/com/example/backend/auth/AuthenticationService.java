@@ -34,6 +34,7 @@ public class AuthenticationService {
                 .role(request.getRole())
                 .phone(request.getPhone())
                 .gender(request.getGender())
+                .active(true)
                 .build();
         var savedUser = repository.save(user);
         if (request.getRole() == Role.ADMIN) {

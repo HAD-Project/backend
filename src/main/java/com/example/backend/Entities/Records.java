@@ -3,8 +3,16 @@ package com.example.backend.Entities;
 import java.util.Date;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity(name = "Records")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Records {
 
     @Id
@@ -72,4 +80,14 @@ public class Records {
 
     @Column(name = "date")
     private Date date;
+
+    @Column(name = "status")
+    private String status;
+
+    @OneToOne
+    @JoinColumn(name = "context_id", referencedColumnName = "referenceNumber")
+    CareContext careContext;
+
+    @Column(name = "display")
+    private String display;
 }

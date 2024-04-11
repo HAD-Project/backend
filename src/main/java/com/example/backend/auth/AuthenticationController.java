@@ -25,6 +25,7 @@ public class AuthenticationController {
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
         try {
+
             return ResponseEntity.ok(service.register(request));
         } catch (DataIntegrityViolationException e) {
             // Log the exception
@@ -44,7 +45,7 @@ public class AuthenticationController {
 
 
 
-    @PostMapping("/authenticate")
+        @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody AuthenticationRequest request){
     try {
         return ResponseEntity.ok(service.authenticate(request));

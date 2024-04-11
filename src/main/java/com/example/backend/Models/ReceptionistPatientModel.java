@@ -18,4 +18,14 @@ public class ReceptionistPatientModel {
     private String dob;
     private String phoneNumber;
     private String address;
+    private String abhaAddress;
+    
+    @Override
+    public String toString() {
+        return "ReceptionistPatientModel [abha_available=" + abha_available + ", abha=" + abha + ", name=" + name
+                + ", sex=" + sex + ", age=" + age + ", dob=" + dob + ", phoneNumber=" + phoneNumber + ", address="
+                + address + ", abhaAddress=" + abhaAddress + "]";
+    }
+    
+    
 }

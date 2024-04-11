@@ -46,4 +46,14 @@ public class Patients {
     @JsonIgnore
     @ManyToMany
     List<Doctors> treatedBy;
+
+    @OneToMany(mappedBy = "patient")
+    @JsonIgnore
+    List<CareContext> careContexts;
+
+    @Column(name = "link_token", columnDefinition = "varchar(1024)")
+    private String linkToken;
+
+    @Column(name = "abha_address")
+    private String abhaAddress;
 }
