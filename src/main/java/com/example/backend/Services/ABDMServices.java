@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import com.example.backend.Models.ResendAuthModel;
 import com.example.backend.Models.SessionModel;
 import com.example.backend.Models.TxnIDModel;
 import com.example.backend.Models.XTokenModel;
+import com.example.backend.Models.abdm.RegisteredFacilities.GetRegisteredFacilities;
 import com.google.gson.Gson;
 
 import lombok.Getter;
@@ -41,6 +43,10 @@ public class ABDMServices {
     private String accessToken;
 
     private String xToken;
+
+    private String facId;
+
+    private String facName;
 
 
     private static final String BASE_URI = "https://healthidsbx.abdm.gov.in";
@@ -104,15 +110,17 @@ public class ABDMServices {
         try {
             initiateSession();
             URL url = new URL(BASE_URI + "/" + BASE_PATH + "/v1/auth/init");
-
+            System.out.println(authInit.getHealthid());
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
             httpURLConnection.setRequestMethod("POST");
             httpURLConnection.setRequestProperty("Content-Type", "application/json");
             httpURLConnection.setRequestProperty("Authorization", "Bearer " + getAccessToken());
+            System.out.println(getAccessToken());
             httpURLConnection.setDoOutput(true);
             // System.out.println("here");
             Gson gson = new Gson();
             String requestBody = gson.toJson(authInit);
+            System.out.println(requestBody);
             // System.out.println(authInit.getAuthMethod());
             // System.out.println(authInit.getHealthid());
             // System.out.println(requestBody.toString());
@@ -292,5 +300,46 @@ public class ABDMServices {
             return null;
         }
     }
+
+    public void fetchRegisteredFacilities() {
+        try {
+            initiateSession();
+            URL url = new URL("https://dev.abdm.gov.in/gateway/v1/bridges/getServices");
+
+            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setRequestMethod("GET");
+            httpURLConnection.setRequestProperty("Content-Type", "application/json");
+            httpURLConnection.setRequestProperty("Authorization","Bearer " + getAccessToken());
+
+            Gson gson = new Gson();
+
+            int responseCode = httpURLConnection.getResponseCode();
+
+            BufferedReader reader;
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                reader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+            } else {
+                reader = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream()));
+            }
+
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+            System.out.println(responseCode);
+            System.out.println(response.toString());
+            GetRegisteredFacilities getRegisteredFacilities = gson.fromJson(response.toString(), GetRegisteredFacilities.class);
+            List<com.example.backend.Models.abdm.RegisteredFacilities.Service> facList = getRegisteredFacilities.getServices();
+            setFacId(facList.get(0).getId());
+            setFacName(facList.get(0).getName());     
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    
 
 }

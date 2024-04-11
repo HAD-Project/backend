@@ -9,7 +9,7 @@ import com.example.backend.Models.RecordModel;
 import com.example.backend.Repositories.DepartmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
 import com.example.backend.Repositories.UserRepository;
-import com.example.backend.Services.ABDMServices_Shrutik;
+// import com.example.backend.Services.ABDMServices_Shrutik;
 import com.example.backend.Services.DoctorService;
 import org.springframework.web.bind.annotation.*;
 import com.example.backend.Models.abdm.auth.patient.PatientAuthOnInitReq;
@@ -36,8 +36,8 @@ public class DoctorController {
     private DoctorRepository doctorRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
-    @Autowired
-    ABDMServices_Shrutik abdmServices;
+    // @Autowired
+    // // ABDMServices_Shrutik abdmServices;
 
     @Autowired
     private DoctorService doctorService;
