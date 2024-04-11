@@ -83,7 +83,7 @@ public class ReceptionController {
         try{
             Optional<Receptionists> receptionist = receptionRepository.findByUserEmailAndUserActiveTrue(email);
             if(receptionist.isEmpty())
-                return ResponseEntity.ok("Doctor doesn't Exists");
+                return ResponseEntity.ok("Receptionist doesn't Exists");
             receptionist.get().getUser().setActive(false);
             receptionRepository.save(receptionist.get());
             return ResponseEntity.ok("Succesfully Deleted");
