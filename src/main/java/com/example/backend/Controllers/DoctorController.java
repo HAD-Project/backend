@@ -9,11 +9,7 @@ import com.example.backend.Models.RecordModel;
 import com.example.backend.Repositories.DepartmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
 import com.example.backend.Repositories.UserRepository;
-<<<<<<< HEAD
-// import com.example.backend.Services.ABDMServices_Shrutik;
-=======
 import com.example.backend.Services.ABDMServices;
->>>>>>> main
 import com.example.backend.Services.DoctorService;
 
 import reactor.core.publisher.Mono;
@@ -43,14 +39,9 @@ public class DoctorController {
     private DoctorRepository doctorRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
-<<<<<<< HEAD
-    // @Autowired
-    // // ABDMServices_Shrutik abdmServices;
-=======
 
     @Autowired
     private ABDMServices abdmServices;
->>>>>>> main
 
     @Autowired
     private DoctorService doctorService;
