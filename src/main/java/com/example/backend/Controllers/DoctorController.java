@@ -5,10 +5,11 @@ import com.example.backend.Entities.Doctors;
 import com.example.backend.Entities.Patients;
 import com.example.backend.Entities.Records;
 import com.example.backend.Models.DoctorModel;
+import com.example.backend.Models.PatientDetailsModel;
 import com.example.backend.Models.RecordModel;
+import com.example.backend.Models.frontend.RequestRecords;
 import com.example.backend.Repositories.DepartmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
-import com.example.backend.Repositories.UserRepository;
 import com.example.backend.Services.ABDMServices;
 import com.example.backend.Services.DoctorService;
 
@@ -76,6 +77,7 @@ public class DoctorController {
             return ResponseEntity.status(500).build();
         }
     }
+
     @GetMapping("/viewDoctor/{email}")
     public ResponseEntity<Optional<DoctorModel>> getDoctor(@PathVariable String email) {
         try {
@@ -95,6 +97,7 @@ public class DoctorController {
             return ResponseEntity.status(500).build();
         }
     }
+
     @PostMapping("/createDoctor")
     public ResponseEntity<String> createDoctor(@RequestBody DoctorModel doctorModel) {
         try {
@@ -116,6 +119,7 @@ public class DoctorController {
             return ResponseEntity.status(500).build();
         }
     }
+
     @PutMapping("/updateDoctor/{email}")
     public ResponseEntity<String> updateDoctor(@PathVariable String email,@RequestBody DoctorModel doctorModel) {
         try {
@@ -138,6 +142,7 @@ public class DoctorController {
             return ResponseEntity.status(500).build();
         }
     }
+
     @DeleteMapping("/deleteDoctor/{email}")
     public ResponseEntity<String> deleteDoctor(@PathVariable String email) {
         try{
@@ -170,9 +175,9 @@ public class DoctorController {
     }
 
     @GetMapping("/patient")
-    public ResponseEntity<Patients> getOnePatient(@RequestParam int patientId) {
+    public ResponseEntity<PatientDetailsModel> getOnePatient(@RequestParam int patientId) {
         try {
-            Patients patient = doctorService.getPatient(patientId);
+            PatientDetailsModel patient = doctorService.getPatient(patientId);
             return ResponseEntity.ok().body(patient);
         }
         catch (Exception e) {
@@ -206,6 +211,18 @@ public class DoctorController {
         catch (Exception e) {
             System.out.println("Error in creating linking token: " + e.getLocalizedMessage());
             return Mono.just(ResponseEntity.internalServerError().build());
+        }
+    }
+
+    @PostMapping("/requestRecords")
+    public ResponseEntity<Void> requestRecords(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody RequestRecords req) {
+        try {
+            doctorService.requestRecords(token.split(" ")[1], req);
+            return ResponseEntity.ok().build();
+        }
+        catch (Exception e) {
+            System.out.println("Error in DoctorController:requestRecords: " + e.getLocalizedMessage());
+            return ResponseEntity.internalServerError().build();
         }
     }
 

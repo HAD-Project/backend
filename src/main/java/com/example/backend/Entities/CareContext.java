@@ -1,6 +1,9 @@
 package com.example.backend.Entities;
 
+import com.example.backend.cryptography.ConverterUtil;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,11 +26,12 @@ import lombok.Setter;
 public class CareContext {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "referenceNumber")
-    private int referenceNumber;
+    private String referenceNumber;
 
     @Column(name = "display")
+    @Convert(converter = ConverterUtil.class)
     private String display;
 
     @OneToOne(mappedBy = "careContext")
@@ -37,4 +41,5 @@ public class CareContext {
     @JoinColumn(name = "patient_id")
     private Patients patient;
 
+    private String artefactId;
 }

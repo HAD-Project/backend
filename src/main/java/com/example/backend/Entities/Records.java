@@ -2,6 +2,7 @@ package com.example.backend.Entities;
 
 import java.util.Date;
 
+import com.example.backend.cryptography.ConverterUtil;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,6 +21,7 @@ public class Records {
     @Column(name = "id")
     private int id;
 
+    @Convert(converter = ConverterUtil.class)
     @Column(name = "file_path")
     private String filePath;
 
@@ -76,12 +78,14 @@ public class Records {
     private Patients patient;
 
     @Column(name = "record_type")
+    @Convert(converter = ConverterUtil.class)
     private String recordType;
 
     @Column(name = "date")
     private Date date;
 
     @Column(name = "status")
+    @Convert(converter = ConverterUtil.class)
     private String status;
 
     @OneToOne
@@ -89,5 +93,6 @@ public class Records {
     CareContext careContext;
 
     @Column(name = "display")
+    @Convert(converter = ConverterUtil.class)
     private String display;
 }

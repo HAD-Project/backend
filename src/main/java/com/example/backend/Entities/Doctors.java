@@ -1,5 +1,6 @@
 package com.example.backend.Entities;
 
+import com.example.backend.cryptography.ConverterUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
@@ -26,6 +27,7 @@ public class Doctors  {
     private Users user;
 
     @Column(name = "qualifications")
+    @Convert(converter = ConverterUtil.class)
     private String qualifications;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,4 +37,8 @@ public class Doctors  {
 
     @ManyToMany(mappedBy = "treatedBy")
     List<Patients> treats;
+
+    @Column(name = "consents")
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Consents> consents;
 }

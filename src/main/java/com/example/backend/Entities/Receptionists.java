@@ -2,6 +2,7 @@ package com.example.backend.Entities;
 
 import java.util.List;
 
+import com.example.backend.cryptography.ConverterUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
@@ -25,6 +26,7 @@ public class Receptionists {
     private Users user;
 
     @Column(name = "qualifications")
+    @Convert(converter = ConverterUtil.class)
     private String qualifications;
 
     @JsonIgnore

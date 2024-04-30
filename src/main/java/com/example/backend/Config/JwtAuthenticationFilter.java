@@ -34,7 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
-        if (authHeader == null ||!authHeader.startsWith("Bearer ") || request.getRequestURI().contains("/api/v3/hip/")) {
+        if (authHeader == null ||!authHeader.startsWith("Bearer ") || request.getRequestURI().contains("v3") || request.getRequestURI().contains("/api/v3/hip/") || request.getRequestURI().contains("/api/v3/hiu/")) {
+            System.out.println("Allowing request");
             filterChain.doFilter(request, response);
             return;
         }

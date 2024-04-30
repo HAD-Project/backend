@@ -2,7 +2,10 @@ package com.example.backend.Entities;
 
 import java.util.Date;
 
+import com.example.backend.cryptography.ConverterUtil;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -45,11 +48,14 @@ public class Appointments {
     private Date appointmentDate;
 
     @Column(name = "remarks")
+    @Convert(converter = ConverterUtil.class)
     private String remarks;
 
     @Column(name = "stay_type")
+    @Convert(converter = ConverterUtil.class)
     private String stayType;
 
     @Column(name = "status")
+    @Convert(converter = ConverterUtil.class)
     private String status;
 }

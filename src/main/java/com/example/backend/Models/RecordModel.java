@@ -3,6 +3,9 @@ package com.example.backend.Models;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -17,4 +20,5 @@ public class RecordModel {
     String recordType;
     String date;
     String display;
+    private List<PrescriptionModel> prescriptionList;
 }

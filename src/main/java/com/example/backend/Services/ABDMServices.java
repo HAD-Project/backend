@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.example.backend.Entities.CareContext;
+import com.example.backend.Entities.Consents;
+import com.example.backend.Entities.DataRequests;
 import com.example.backend.Entities.Patients;
 import com.example.backend.Entities.Records;
 import com.example.backend.Models.AccessTokenModel;
@@ -33,9 +35,18 @@ import com.example.backend.Models.TxnIDModel;
 import com.example.backend.Models.XTokenModel;
 import com.example.backend.Models.abdm.CareContextModel;
 import com.example.backend.Models.abdm.CareContextPatient;
+import com.example.backend.Models.abdm.ConsentReqInit;
+import com.example.backend.Models.abdm.HIUConsentReqNotify;
+import com.example.backend.Models.abdm.DataTransferReq;
+import com.example.backend.Models.abdm.ConsentReqInit.Purpose;
 import com.example.backend.Models.abdm.GenerateLinkingTokenReq;
+import com.example.backend.Models.abdm.Keys;
 import com.example.backend.Models.abdm.LinkCareContextReq;
+import com.example.backend.Repositories.CareContextRepository;
+import com.example.backend.Repositories.ConsentRepository;
+import com.example.backend.Repositories.DataRequestRepository;
 import com.example.backend.Repositories.PatientRepository;
+import com.example.backend.cryptography.CryptographyUtil;
 import com.google.gson.Gson;
 
 import lombok.Getter;
@@ -53,18 +64,37 @@ public class ABDMServices {
     @Value("${api.clientSecret}")
     private String apiClientSecret;
 
+    @Value("${api.datapushurl}")
+    private String dataPushURL;
+
+    @Value("${hmis_id}")
+    private String hmisId;
+
     private String rsaKey;
 
     private String accessToken;
 
     private String xToken;
 
+    @Autowired
+    private CryptographyUtil cryptographyUtil;
+
+    private Keys keys;
 
     private static final String BASE_URI = "https://healthidsbx.abdm.gov.in";
     private static final String BASE_PATH = "api";
 
     @Autowired
     private PatientRepository patientRepository;
+
+    @Autowired
+    ConsentRepository consentRepository;
+
+    @Autowired
+    DataRequestRepository dataRequestRepository;
+
+    @Autowired
+    CareContextRepository careContextRepository;
 
     public String getTimeStamp() {
         TimeZone tz = TimeZone.getTimeZone("UTC");
@@ -81,8 +111,6 @@ public class ABDMServices {
                                       .bodyToMono(String.class).block();
         setRsaKey(keyMono); 
     }
-
-        
 
     public void initiateSession() {
         try {
@@ -348,7 +376,7 @@ public class ABDMServices {
             .header("REQUEST-ID", UUID.randomUUID().toString())
             .header("TIMESTAMP", nowAsISO)
             .header("Authorization", "Bearer " + this.getAccessToken())
-            .header("X-HIP-ID", "HAD_01")
+            .header("X-HIP-ID", hmisId)
             .header("X-CM-ID", "sbx")
             .bodyValue(req)
             .retrieve()
@@ -399,7 +427,7 @@ public class ABDMServices {
                 .header("REQUEST-ID", UUID.randomUUID().toString())
                 .header("TIMESTAMP", getTimeStamp())
                 .header("Authorization", "Bearer " + getAccessToken())
-                .header("X-HIP-ID", "HAD_01")
+                .header("X-HIP-ID", hmisId)
                 .header("X-CM-ID", "sbx")
                 .header("X-LINK-TOKEN", patient.getLinkToken())
                 .bodyValue(req)
@@ -418,4 +446,174 @@ public class ABDMServices {
 
     }
 
+    public void requestConsent(Consents consent) {
+        ConsentReqInit req = new ConsentReqInit();
+        req.setRequestId(consent.getId());
+        req.setTimestamp(getTimeStamp());
+
+        ConsentReqInit.Consent c = new ConsentReqInit.Consent();
+
+        ConsentReqInit.Purpose purpose = new Purpose();
+        purpose.setCode(consent.getCode());
+        purpose.setText(consent.getText());
+        c.setPurpose(purpose);
+
+        ConsentReqInit.Patient patient = new ConsentReqInit.Patient();
+        patient.setId(consent.getPatient().getAbhaAddress());
+        c.setPatient(patient);
+
+        ConsentReqInit.HIU hiu = new ConsentReqInit.HIU();
+        hiu.setId(hmisId);
+        c.setHiu(hiu);
+
+        ConsentReqInit.Requester requester = new ConsentReqInit.Requester();
+        requester.setName(consent.getDoctor().getUser().getName());
+        ConsentReqInit.Identifier identifier = new ConsentReqInit.Identifier();
+        identifier.setType("REGNO");
+        identifier.setValue(Integer.toString(consent.getDoctor().getDoctorId()));
+        requester.setIdentifier(identifier);
+        c.setRequester(requester);
+
+        c.setHiTypes(consent.getHiTypes());
+        
+        ConsentReqInit.Permission permission = new ConsentReqInit.Permission();
+        permission.setAccessMode(consent.getAccessMode());
+        
+        ConsentReqInit.DateRange dateRange = new ConsentReqInit.DateRange();
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+        Date fromDate = new Date(consent.getDateFrom().getTime());
+        String fromDateString = df.format(fromDate);
+
+        Date toDate = new Date(consent.getDateTo().getTime());
+        String toDateString = df.format(toDate);
+
+        dateRange.setFrom(fromDateString);
+        dateRange.setTo(toDateString);
+        permission.setDateRange(dateRange);
+
+        Date dataEraseDate = new Date(consent.getDataEraseAt().getTime());
+        String dataEraseDateString = df.format(dataEraseDate);
+        permission.setDataEraseAt(dataEraseDateString);
+
+        ConsentReqInit.Frequency frequency = new ConsentReqInit.Frequency();
+        permission.setFrequency(frequency);
+
+        c.setPermission(permission);
+
+        req.setConsent(c);
+        System.out.println(req);
+        
+        try {
+            this.initiateSession();
+            System.out.println("Access token: " + getAccessToken());
+            WebClient webClient = WebClient.create();
+            System.out.println("Making consent request: " + req);
+            webClient
+                .post()
+                .uri(new URI("https://dev.abdm.gov.in/gateway/v0.5/consent-requests/init"))
+                .header("Authorization", "Bearer " + getAccessToken())
+                .header("X-CM-ID", "sbx")
+                .bodyValue(req)
+                .retrieve()
+                .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
+                    response -> response.bodyToMono(String.class).flatMap(body -> {
+                        System.out.println("Error response body: " + body);
+                        return null;
+                    })
+                )
+                .bodyToMono(Void.class)
+                .subscribe(args -> {
+                    System.out.println("Request made");
+                });
+        }
+        catch (Exception e) {
+            System.out.println("Error in abdmServices->requestConsent: " + e.getLocalizedMessage());
+        }
+    }
+
+    public void requestHealthData(HIUConsentReqNotify req) {
+        DataTransferReq dataTransferReq = new DataTransferReq();
+        Consents consent = consentRepository.findByConsentArtefactId(req.getNotification().getConsentArtefacts().get(0).getId());
+        req.getNotification().getConsentArtefacts().remove(0);
+        for(HIUConsentReqNotify.ConsentArtefact ca: req.getNotification().getConsentArtefacts()) {
+    
+            String dataTransferReqId = UUID.randomUUID().toString();
+            dataTransferReq.setRequestId(dataTransferReqId);
+            dataTransferReq.setTimestamp(getTimeStamp());
+    
+            DataTransferReq.HiRequest hiRequest = new DataTransferReq.HiRequest();
+            
+            DataTransferReq.Consent consentArtefact = new DataTransferReq.Consent();
+            consentArtefact.setId(ca.getId());
+            hiRequest.setConsent(consentArtefact);
+    
+            DataTransferReq.DateRange dateRange = new DataTransferReq.DateRange();
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    
+            Date fromDate = new Date(consent.getDateFrom().getTime());
+            String fromDateString = df.format(fromDate);
+    
+            Date toDate = new Date(consent.getDateTo().getTime());
+            String toDateString = df.format(toDate);
+    
+            dateRange.setFrom(fromDateString);
+            dateRange.setTo(toDateString);
+            hiRequest.setDateRange(dateRange);
+    
+            hiRequest.setDataPushUrl(this.dataPushURL);
+    
+            DataTransferReq.KeyMaterial keyMaterial = new DataTransferReq.KeyMaterial();
+    
+            keyMaterial.setCryptoAlg("ECDH");
+            keyMaterial.setCurve("Curve25519");
+    
+            DataTransferReq.DhPublicKey dhPublicKey = new DataTransferReq.DhPublicKey();
+            dhPublicKey.setKeyValue(cryptographyUtil.getKeys().getPublicKey());
+            dhPublicKey.setParameters("Curve25519/32byte random key");
+            long expiry = new Date().getTime() + (24l * 60l * 60l * 1000l);
+            Date expiryDate = new Date(expiry);
+            dhPublicKey.setExpiry(df.format(expiryDate));
+            keyMaterial.setDhPublicKey(dhPublicKey);
+            keyMaterial.setNonce(cryptographyUtil.getKeys().getNonce());
+    
+            hiRequest.setKeyMaterial(keyMaterial);
+    
+            dataTransferReq.setHiRequest(hiRequest);
+    
+            try {
+                
+                DataRequests dataRequest = new DataRequests();
+                dataRequest.setRequestId(dataTransferReqId);
+                dataRequest.setConsentArtefactId(req.getNotification().getConsentArtefacts().get(0).getId());
+                dataRequest.setAbhaAddress(consent.getPatient().getAbhaAddress());
+                dataRequest.setExpiry(consent.getDataEraseAt());
+                dataRequestRepository.save(dataRequest);
+                
+                WebClient webClient = WebClient.create();
+                this.initiateSession();
+                System.out.println("Requesting health data: " + dataTransferReq);
+                webClient
+                .post()
+                .uri(new URI("https://dev.abdm.gov.in/gateway/v0.5/health-information/cm/request"))
+                .header("Authorization", "Bearer " + getAccessToken())
+                .header("X-CM-ID", "sbx")
+                .bodyValue(dataTransferReq)
+                .retrieve()
+                .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
+                    response -> response.bodyToMono(String.class).flatMap(body -> {
+                        System.out.println("Error response body: " + body);
+                        return null;
+                    })
+                )
+                .bodyToMono(Void.class)
+                .subscribe(args -> {
+                    System.out.println("requestHealthData: Request made");
+                });
+            }
+            catch (Exception e) {
+                System.out.println("Error in ABDMServices->requestHealthData: " + e.getLocalizedMessage());
+            }
+        }
+    }
 }
