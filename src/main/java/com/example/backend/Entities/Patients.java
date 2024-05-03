@@ -64,6 +64,7 @@ public class Patients {
     private String abhaAddress;
 
     @Column(name = "consents")
+    @JsonIgnore
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Consents> consents;
 

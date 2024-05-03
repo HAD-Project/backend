@@ -3,6 +3,8 @@ package com.example.backend.Entities;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -44,6 +46,7 @@ public class Consents {
     @Column(name = "code")
     private String code;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     private Patients patient;
 
