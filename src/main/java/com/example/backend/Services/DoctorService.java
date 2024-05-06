@@ -4,11 +4,19 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
 
 import com.example.backend.Config.JwtService;
 import com.example.backend.Entities.Appointments;
@@ -17,11 +25,15 @@ import com.example.backend.Entities.Consents;
 import com.example.backend.Entities.Doctors;
 import com.example.backend.Entities.ExternalRecords;
 import com.example.backend.Entities.Patients;
+import com.example.backend.Entities.RawFiles;
 import com.example.backend.Repositories.CareContextRepository;
 import com.example.backend.Repositories.ConsentRepository;
 import com.example.backend.Repositories.DoctorRepository;
 import com.example.backend.Repositories.PatientRepository;
+import com.example.backend.Repositories.RawFilesRepository;
 import com.example.backend.Entities.Records;
+import com.example.backend.Models.FileModel;
+import com.example.backend.Models.FileUpload;
 import com.example.backend.Models.PatientDetailsModel;
 import com.example.backend.Models.RecordModel;
 
@@ -29,11 +41,25 @@ import com.example.backend.Models.frontend.RequestRecords;
 import com.example.backend.Repositories.RecordRepository;
 import com.example.backend.cryptography.CryptographyUtil;
 
+import jakarta.servlet.http.HttpServletResponse;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.springframework.http.MediaType;
+
+import javassist.bytecode.ExceptionTable;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -72,6 +98,12 @@ public class DoctorService {
    @Autowired
    private CryptographyUtil cryptographyUtil;
 
+   @Autowired
+   private RawFilesRepository rawFilesRepository;
+   
+   @Value("${raw_files_base_path}")
+   private String rawFilesBasePath;
+
 //    public List<Appointments> getAppointments(Doctors doctor) {
 //        return appointmentService.findAppointmentsByDoctor(doctor);
 //    }
@@ -100,7 +132,7 @@ public class DoctorService {
         return toReturn;
     }
 
-   public Records createRecord(String token, RecordModel toAdd) throws Exception {
+   public Records createRecord(String token, RecordModel toAdd, String txnId) throws Exception {
        String email = jwtService.extractUsername(token);
        Records newRecord = new Records();
 
@@ -126,6 +158,9 @@ public class DoctorService {
                if(toAdd.getRecordType().equals("Prescription")) {
                 writer.write(cryptographyUtil.encrypt(fhirServices.createPrescription(doctor, patient, toAdd.getPrescriptionList())));
                }
+               else if(toAdd.getRecordType().equals("HealthDocumentRecord")) {
+                writer.write(cryptographyUtil.encrypt(toAdd.getText()));
+               }
                else {
                 writer.write(cryptographyUtil.encrypt(toAdd.getText()));
                }
@@ -136,10 +171,18 @@ public class DoctorService {
                CareContext savedCareContext = careContextRepository.save(careContext);
                newRecord.setCareContext(careContext);
                savedRecord = recordRepository.save(newRecord);
-               if(patient.getAbhaAddress() != null) {
-                    abdmServices.linkRecord(savedRecord, patient, careContext)
-                        .subscribe((args) -> {System.out.println("Record linked");});
+
+               if(toAdd.getRecordType().equals("HealthDocumentRecord")) {
+                List<RawFiles> files = rawFilesRepository.findByTxnId(txnId);
+                for(RawFiles rawFile: files) {
+                    rawFile.setRecord(savedRecord);
+                    rawFilesRepository.save(rawFile);
+                }
                }
+            //    if(patient.getAbhaAddress() != null) {
+            //         abdmServices.linkRecord(savedRecord, patient, careContext)
+            //             .subscribe((args) -> {System.out.println("Record linked");});
+            //    }
                return savedRecord;
            }
            else {
@@ -173,10 +216,23 @@ public class DoctorService {
             toAdd.setPrescriptionList(new ArrayList<>());
             toAdd.getPrescriptionList().addAll(fhirServices.toPrescriptionModel(json));
         }
+        else if(r.getRecordType().equals("HealthDocumentRecord")) {
+            List<FileModel> files = new ArrayList<>();
+            for(RawFiles rawFile: r.getFiles()) {
+                FileModel toAddFile = new FileModel();
+                toAddFile.setId(rawFile.getId());
+                toAddFile.setFileName(rawFile.getName());
+                files.add(toAddFile);
+            }
+            toAdd.setFiles(files);
+            String text = sb.toString();
+            text = cryptographyUtil.decrypt(text);
+            toAdd.setText(text);
+        }
         else {
             String text = sb.toString();
             text = cryptographyUtil.decrypt(text);
-            toAdd.setText(sb.toString());
+            toAdd.setText(text);
         }
         toAdd.setRecordType(r.getRecordType());
         toAdd.setDate(r.getDate().toString());
@@ -235,5 +291,67 @@ public class DoctorService {
         toAdd = consentRepository.save(toAdd);
         
         abdmServices.requestConsent(toAdd);
+    }
+
+    public void uploadFile(String txnId, FileUpload req) {
+
+        for(MultipartFile file: req.getFiles()) {
+            RawFiles toAdd = new RawFiles();
+            toAdd.setTxnId(txnId);
+            toAdd.setType(file.getContentType());
+            toAdd.setName(file.getOriginalFilename());
+            
+            String filePath = rawFilesBasePath + UUID.randomUUID() +  "_" + file.getOriginalFilename();
+            toAdd.setPath(filePath);
+            File toWrite = new File(filePath);
+            try {
+                if(toWrite.createNewFile()) {
+                    FileOutputStream fos = new FileOutputStream(toWrite);
+                    fos.write(cryptographyUtil.encrypt(file.getBytes()));
+                    fos.close();
+                    rawFilesRepository.save(toAdd);
+                }
+            }
+            catch (Exception e) {
+                System.out.println("Error in DoctorService->uploadFile: " + e.getLocalizedMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public ResponseEntity<InputStreamResource> downloadFile(String fileId, HttpServletResponse res) {
+        RawFiles file = rawFilesRepository.findById(fileId).get();
+
+        try {
+            File f = new File(file.getPath());
+            InputStream inputStream = new FileInputStream(f);
+
+            byte encrypted[] = inputStream.readAllBytes();
+            inputStream.close();
+            byte decrypted[] = cryptographyUtil.decrypt(encrypted);
+            InputStream decryptedInputStream = new ByteArrayInputStream(decrypted);
+
+            HttpHeaders headers = new HttpHeaders();
+            if(file.getType().equals("application/pdf")) {
+                headers.setContentType(MediaType.APPLICATION_PDF);
+            }
+            else if(file.getType().equals("image/png")) {
+                headers.setContentType(MediaType.IMAGE_PNG);
+            }
+            else {
+                headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            }
+            headers.setContentDispositionFormData("filename", file.getName());
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(headers.getContentType())
+                    .body(new InputStreamResource(decryptedInputStream));
+        }
+        catch (Exception e) {
+            System.out.println("Error in DoctorService->downloadFile: " + e.getLocalizedMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 } 

@@ -5,6 +5,7 @@ import com.example.backend.Entities.Doctors;
 import com.example.backend.Entities.Patients;
 import com.example.backend.Entities.Records;
 import com.example.backend.Models.DoctorModel;
+import com.example.backend.Models.FileUpload;
 import com.example.backend.Models.PatientDetailsModel;
 import com.example.backend.Models.RecordModel;
 import com.example.backend.Models.frontend.RequestRecords;
@@ -13,17 +14,16 @@ import com.example.backend.Repositories.DoctorRepository;
 import com.example.backend.Services.ABDMServices;
 import com.example.backend.Services.DoctorService;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import reactor.core.publisher.Mono;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,15 +46,28 @@ public class DoctorController {
 
     @Autowired
     private DoctorService doctorService;
+
     @PostMapping("/createRecord")
-    public ResponseEntity<Records> createRecord(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody RecordModel toAdd) {
+    public ResponseEntity<Records> createRecord(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestParam String txnId, @RequestBody RecordModel toAdd) {
         try {
-            doctorService.createRecord(token.split(" ")[1], toAdd);
+            doctorService.createRecord(token.split(" ")[1], toAdd, txnId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             System.out.println("Error in creating record: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(500).build();
         }
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<Void> uploadFile(@RequestParam String txnId, @ModelAttribute FileUpload req) {
+        doctorService.uploadFile(txnId, req);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/download")
+    public ResponseEntity<InputStreamResource> downloadFile(@RequestParam String fileId, HttpServletRequest req, HttpServletResponse res) {
+        return doctorService.downloadFile(fileId, res);
     }
 
     @GetMapping("/viewDoctors")

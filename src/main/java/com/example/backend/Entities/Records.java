@@ -1,6 +1,7 @@
 package com.example.backend.Entities;
 
 import java.util.Date;
+import java.util.List;
 
 import com.example.backend.cryptography.ConverterUtil;
 import jakarta.persistence.*;
@@ -95,4 +96,7 @@ public class Records {
     @Column(name = "display")
     @Convert(converter = ConverterUtil.class)
     private String display;
+
+    @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RawFiles> files;
 }

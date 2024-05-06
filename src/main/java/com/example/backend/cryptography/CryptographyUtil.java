@@ -70,6 +70,43 @@ public class CryptographyUtil {
         return null;
     }
 
+    public byte[] encrypt(byte value[]) {
+        try {
+            IvParameterSpec iv = new IvParameterSpec(initVector.getBytes(StandardCharsets.UTF_8));
+            SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
+
+            Cipher cipher = Cipher.getInstance(algo);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, iv);
+
+            byte encrypted[] = cipher.doFinal(value);
+            return encrypted;
+        }
+        catch (Exception e) {
+            System.out.println("Error in encryption: " + e.getLocalizedMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public byte[] decrypt(byte encrypted[]) {
+        try {
+            IvParameterSpec iv = new IvParameterSpec(initVector.getBytes(StandardCharsets.UTF_8));
+
+            SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
+
+            Cipher cipher = Cipher.getInstance(algo);
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, iv);
+
+            byte original[] = cipher.doFinal(encrypted);
+            return original;
+        }
+        catch (Exception e) {
+            System.out.println("Error in decrpytion: " + e.getLocalizedMessage());
+            e.printStackTrace();;
+        }
+        return null;
+    }
+
     public void generateKeySet() {
         if(keys != null) {
             return;
