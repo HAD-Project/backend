@@ -37,7 +37,7 @@ public class SecurityConfiguration {
                 .hasAuthority(ADMIN.name())
                 .requestMatchers("/api/receptionist/patients/**")
                 .permitAll()
-                .requestMatchers( "/api/v3/consent/**").permitAll()
+                .requestMatchers( "/api/v3/consent/**")
                 .hasAnyAuthority(RECEPTIONIST.name())
                 .requestMatchers("/api/receptionist/overview")
                 .hasAnyAuthority(RECEPTIONIST.name())
