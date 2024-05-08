@@ -849,6 +849,7 @@ public class CallbackServices {
                 }
 
                 String fhirContent = hm.get("content");
+                toAdd = externalRecordsRepository.save(toAdd);
                 fhirServices.saveHealthRecordFiles(fhirContent, toAdd, request.getTransactionId());
             }
             else {

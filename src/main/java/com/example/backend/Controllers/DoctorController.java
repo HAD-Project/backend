@@ -4,6 +4,7 @@ import com.example.backend.Entities.Departments;
 import com.example.backend.Entities.Doctors;
 import com.example.backend.Entities.Patients;
 import com.example.backend.Entities.Records;
+import com.example.backend.Entities.Users;
 import com.example.backend.Models.DoctorModel;
 import com.example.backend.Models.FileUpload;
 import com.example.backend.Models.PatientDetailsModel;
@@ -11,6 +12,7 @@ import com.example.backend.Models.RecordModel;
 import com.example.backend.Models.frontend.RequestRecords;
 import com.example.backend.Repositories.DepartmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
+import com.example.backend.Repositories.UserRepository;
 import com.example.backend.Services.ABDMServices;
 import com.example.backend.Services.DoctorService;
 
@@ -19,7 +21,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import reactor.core.publisher.Mono;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -46,6 +47,9 @@ public class DoctorController {
 
     @Autowired
     private DoctorService doctorService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping("/createRecord")
     public ResponseEntity<Records> createRecord(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestParam String txnId, @RequestBody RecordModel toAdd) {
@@ -117,18 +121,28 @@ public class DoctorController {
             Departments department = departmentRepository.findByName(doctorModel.getDepartment());
             if(department==null)
                 return ResponseEntity.ok("Department doesn't Exists");
+
+            Users user = new Users();
+            user.setName(doctorModel.getName());
+            user.setName(doctorModel.getName());
+            user.setEmail(doctorModel.getEmail());
+            user.setGender(doctorModel.getGender());
+            user.setUsername(doctorModel.getUsername());
+            user.setPhone(doctorModel.getPhone());
+            user.setRole(DOCTOR);
+            user.setPassword(doctorModel.getPassword());
+
+            user = userRepository.save(user);
+            
             Doctors doctor = new Doctors();
-            doctor.getUser().setName(doctorModel.getName());
-            doctor.getUser().setEmail(doctorModel.getEmail());
-            doctor.getUser().setGender(doctorModel.getGender());
-            doctor.getUser().setUsername(doctorModel.getUsername());
-            doctor.getUser().setPhone(doctorModel.getPhone());
-            doctor.getUser().setRole(DOCTOR);
+            doctor.setUser(user);
             doctor.setQualifications(doctorModel.getQualifications());
             doctor.setDepartment(department);
             doctorRepository.save(doctor);
             return ResponseEntity.ok("Succesfully created");
         } catch (Exception e) {
+            System.out.println("Error in DoctorController->createDoctor: " + e.getLocalizedMessage());
+            e.printStackTrace();
             return ResponseEntity.status(500).build();
         }
     }
