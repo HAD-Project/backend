@@ -5,6 +5,9 @@ import org.springframework.stereotype.Repository;
 
 import com.example.backend.Entities.Patients;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Repository
 public interface PatientRepository extends JpaRepository<Patients, Integer> {
@@ -14,5 +17,6 @@ public interface PatientRepository extends JpaRepository<Patients, Integer> {
     Patients findByAbhaAddress(String abhaAddress);
 
     Patients findByAbhaId(String abhaId);
+
 
 }
