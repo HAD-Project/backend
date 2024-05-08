@@ -1,9 +1,6 @@
 package com.example.backend.Models;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 
@@ -11,13 +8,17 @@ import java.util.Date;
 @NoArgsConstructor
 @Setter
 @Getter
+@ToString
 public class AppointmentModel {
-    int doctorId;
-    int receptionistId;
-    int patientId;
+    String doctorEmail;
+    String receptionistEmail;
+    String patientID;
+    String patientName;
     private Date time;
     private Date date;
     private String remarks;
-    private String stayType;
+    private String type;
     private String status;
+    private String doctorName;
+    private int appointmentId;
 }
