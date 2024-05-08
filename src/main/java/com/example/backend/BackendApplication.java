@@ -15,7 +15,7 @@ import com.example.backend.Services.ABDMServices;
 import jakarta.annotation.PostConstruct;
 
 @SpringBootApplication
-@PropertySource("classpath:application-dev.properties")
+//@PropertySource("classpath:application-dev.properties")
 public class BackendApplication {
 
 	@Autowired
