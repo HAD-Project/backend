@@ -1,9 +1,9 @@
 package com.example.backend.Services;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.example.backend.Config.JwtService;
-import com.example.backend.Entities.Doctors;
 import com.example.backend.Entities.Patients;
 import com.example.backend.Entities.Receptionists;
 import com.example.backend.Models.AppointmentModel;
@@ -13,7 +13,7 @@ import com.example.backend.Repositories.ReceptionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.backend.Entities.Appointments;
-//import com.example.backend.Entities.Doctors;
+import com.example.backend.Entities.Doctors;
 import com.example.backend.Repositories.AppointmentRepository;
 
 
@@ -43,9 +43,16 @@ public class AppointmentService {
         String email = jwtService.extractUsername(token);
         Appointments appointment = new Appointments();
         Receptionists receptionist = receptionistRepository.findByUserEmailAndUserActiveTrue(email).get();
-        Patients patient = patientRepository.findByPatientId(toAdd.getPatientId());
-        Doctors doctor = doctorRepository.findByDoctorId(toAdd.getDoctorId());
-
+        Patients patient = patientRepository.findByAbhaId(toAdd.getPatientID());
+        Optional<Doctors> tempdoctor = doctorRepository.findByUserEmailAndUserActiveTrue(toAdd.getDoctorEmail());
+        Doctors doctor;
+        if(tempdoctor == null){
+            System.out.println("tempdoctor is null");
+            doctor = doctorRepository.findByUserEmail("doctor@mail.com");
+        }
+        else
+            doctor=doctorRepository.findByUserEmail(toAdd.getDoctorEmail());
+        System.out.println(toAdd);
         appointment.setReceptionist(receptionist);
         appointment.setPatient(patient);
         appointment.setDoctor(doctor);
@@ -53,7 +60,7 @@ public class AppointmentService {
         appointment.setAppointmentDate(toAdd.getDate());
         appointment.setStatus(toAdd.getStatus());
         appointment.setRemarks(toAdd.getRemarks());
-        appointment.setStayType(toAdd.getStayType());
+        appointment.setStayType(toAdd.getType());
 
         return appointmentRepository.save(appointment);
     }

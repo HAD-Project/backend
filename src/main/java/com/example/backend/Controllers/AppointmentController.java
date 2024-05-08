@@ -1,15 +1,13 @@
 package com.example.backend.Controllers;
 
 import com.example.backend.Entities.Appointments;
-import com.example.backend.Entities.Departments;
 import com.example.backend.Entities.Doctors;
-import com.example.backend.Entities.Records;
+import com.example.backend.Entities.Patients;
 import com.example.backend.Models.AppointmentModel;
-import com.example.backend.Models.DoctorModel;
+import com.example.backend.Models.DocModel;
 import com.example.backend.Repositories.AppointmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
 import com.example.backend.Repositories.PatientRepository;
-import com.example.backend.Repositories.ReceptionRepository;
 import com.example.backend.Services.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +20,7 @@ import java.util.Optional;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api/v1/appointment")
+@RequestMapping("/api/v1/receptionist")
 public class AppointmentController {
     @Autowired
     private AppointmentRepository appointmentRepository;
@@ -30,6 +28,11 @@ public class AppointmentController {
     @Autowired
     private AppointmentService appointmentService;
 
+    @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private PatientRepository patientRepository;
     @PostMapping("/createAppointment")
     public ResponseEntity<Appointments> createAppointment(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody AppointmentModel toAdd){
         try {
@@ -47,19 +50,56 @@ public class AppointmentController {
             List<AppointmentModel> viewAppointments = new ArrayList<>();
             for(Appointments appointment: appointments){
                 AppointmentModel appointmentModel = new AppointmentModel();
-                appointmentModel.setDoctorId(appointment.getDoctor().getDoctorId());
-                appointmentModel.setPatientId(appointment.getPatient().getPatientId());
-                appointmentModel.setReceptionistId(appointment.getReceptionist().getReceptionistId());
+                appointmentModel.setDoctorEmail(appointment.getDoctor().getUser().getEmail());
+                appointmentModel.setPatientID(appointment.getPatient().getAbhaId());
+                appointmentModel.setReceptionistEmail(appointment.getReceptionist().getUser().getEmail());
                 appointmentModel.setTime(appointment.getAppointmentTime());
                 appointmentModel.setDate(appointment.getAppointmentDate());
                 appointmentModel.setRemarks(appointment.getRemarks());
                 appointmentModel.setStatus(appointment.getStatus());
-                appointmentModel.setStayType(appointment.getStayType());
+                appointmentModel.setType(appointment.getStayType());
+                appointmentModel.setDoctorName(appointment.getDoctor().getUser().getName());
+                appointmentModel.setAppointmentId(appointment.getAppointmentId());
+                appointmentModel.setPatientName(appointment.getPatient().getName());
                 viewAppointments.add(appointmentModel);
             }
             return ResponseEntity.of(Optional.of(viewAppointments));
         } catch (Exception e) {
+            System.out.println("Error in AppointmentController->getAppointments: " + e.getLocalizedMessage());
+            e.printStackTrace();
             return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping("/viewDoctorsName")
+    public ResponseEntity<List<DocModel>> getDoctors() {
+        try {
+
+            List<Doctors> doctors = doctorRepository.findAllByUserActiveTrue();
+            List<DocModel> names = new ArrayList<>();
+            for(Doctors doctor: doctors){
+                DocModel toAdd = new DocModel();
+                toAdd.setDoctorName(doctor.getUser().getName());
+                toAdd.setDoctorEmail(doctor.getUser().getEmail());
+                names.add(toAdd);
+            }
+            return ResponseEntity.of(Optional.of(names));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @GetMapping("/getPatients")
+    public ResponseEntity<List<String>> getPatients(){
+        try{
+            List<Patients> patients = patientRepository.findAll();
+            List<String> names = new ArrayList<>();
+            for(Patients patient : patients){
+                names.add(patient.getAbhaId());
+            }
+            return ResponseEntity.of(Optional.of(names));
+        }catch(Exception e){
+            return null;
         }
     }
 
@@ -71,13 +111,12 @@ public class AppointmentController {
                 return ResponseEntity.ok("Appointment doesn't Exists");
 
             Appointments appointmentToBeUpdated = appointment.get();
-            appointmentToBeUpdated.getDoctor().setDoctorId(appointmentModel.getDoctorId());
-            appointmentToBeUpdated.getReceptionist().setReceptionistId(appointmentModel.getReceptionistId());
-            appointmentToBeUpdated.getPatient().setPatientId(appointmentModel.getPatientId());
+            appointmentToBeUpdated.getDoctor().getUser().setEmail(appointmentModel.getDoctorEmail());
+            appointmentToBeUpdated.getPatient().setAbhaId(appointmentModel.getPatientID());
             appointmentToBeUpdated.setAppointmentDate(appointmentModel.getDate());
             appointmentToBeUpdated.setAppointmentTime(appointmentModel.getTime());
             appointmentToBeUpdated.setStatus(appointmentModel.getStatus());
-            appointmentToBeUpdated.setStayType(appointmentModel.getStayType());
+            appointmentToBeUpdated.setStayType(appointmentModel.getType());
             appointmentToBeUpdated.setRemarks(appointmentModel.getRemarks());
             appointmentRepository.save(appointmentToBeUpdated);
             return ResponseEntity.ok("Successfully Updated");
