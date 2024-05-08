@@ -106,23 +106,16 @@ public class ReceptionController {
                     return ResponseEntity.ok("Email already exists for another doctor");
                 }
             }
+            existingReceptionist.getUser().setName(receptionistModel.getName() == null ? existingReceptionist.getUser().getName() : receptionistModel.getName());
+            existingReceptionist.getUser().setEmail(receptionistModel.getEmail() == null ? existingReceptionist.getUser().getEmail() : receptionistModel.getEmail());
+            existingReceptionist.getUser().setGender(receptionistModel.getGender() == null ? existingReceptionist.getUser().getGender() : receptionistModel.getGender());
+            existingReceptionist.getUser().setPhone(receptionistModel.getPhone() == null ? existingReceptionist.getUser().getPhone() : receptionistModel.getPhone());
+            existingReceptionist.getUser().setUsername(receptionistModel.getUsername() == null ? existingReceptionist.getUser().getUsername() : receptionistModel.getUsername());
+            existingReceptionist.setQualifications(receptionistModel.getQualifications());
 
-            Receptionists receptionistToBeUpdated = Receptionists.builder()
-                    .user(Users.builder()
-                            .name(receptionistModel.getName() == null ? existingReceptionist.getUser().getName() : receptionistModel.getName())
-                            .email(receptionistModel.getEmail() == null ? existingReceptionist.getUser().getEmail() : receptionistModel.getEmail())
-                            .gender(receptionistModel.getGender() == null ? existingReceptionist.getUser().getGender() : receptionistModel.getGender())
-                            .phone(receptionistModel.getPhone() == null ? existingReceptionist.getUser().getPhone() : receptionistModel.getPhone())
-                            .username(receptionistModel.getUsername() == null ? existingReceptionist.getUser().getUsername() : receptionistModel.getUsername())
-                            .password(existingReceptionist.getUser().getPassword())
-                            .role(RECEPTIONIST)
-                            .userId(existingReceptionist.getUser().getUserId())
-                            .active(true)
-                            .build())
-                    .qualifications(receptionistModel.getQualifications() == null ? existingReceptionist.getQualifications() : receptionistModel.getQualifications())
-                    .build();
-            receptionRepository.delete(existingReceptionist);
-            receptionRepository.save(receptionistToBeUpdated);
+
+            receptionRepository.save(existingReceptionist);
+
             return ResponseEntity.ok("Successfully updated");
         } catch (Exception e) {
             return ResponseEntity.status(500).build();

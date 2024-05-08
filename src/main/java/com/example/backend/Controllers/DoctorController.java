@@ -168,26 +168,19 @@ public class DoctorController {
             if (department == null) {
                 return ResponseEntity.ok("Department doesn't exist");
             }
+            existingDoctor.getUser().setName(doctorModel.getName() == null ? existingDoctor.getUser().getName() : doctorModel.getName());
+            existingDoctor.getUser().setEmail(doctorModel.getEmail() == null ? existingDoctor.getUser().getEmail() : doctorModel.getEmail());
+            existingDoctor.getUser().setGender(doctorModel.getGender() == null ? existingDoctor.getUser().getGender() : doctorModel.getGender());
+            existingDoctor.getUser().setPhone(doctorModel.getPhone() == null ? existingDoctor.getUser().getPhone() : doctorModel.getPhone());
+            existingDoctor.getUser().setUsername(doctorModel.getUsername() == null ? existingDoctor.getUser().getUsername() : doctorModel.getUsername());
+            existingDoctor.setQualifications(doctorModel.getQualifications());
+            existingDoctor.setDepartment(department);
 
-            Doctors doctorToBeUpdated = Doctors.builder()
-                    .user(Users.builder()
-                            .name(doctorModel.getName() == null ? existingDoctor.getUser().getName() : doctorModel.getName())
-                            .email(doctorModel.getEmail() == null ? existingDoctor.getUser().getEmail() : doctorModel.getEmail())
-                            .gender(doctorModel.getGender() == null ? existingDoctor.getUser().getGender() : doctorModel.getGender())
-                            .phone(doctorModel.getPhone() == null ? existingDoctor.getUser().getPhone() : doctorModel.getPhone())
-                            .username(doctorModel.getUsername() == null ? existingDoctor.getUser().getUsername() : doctorModel.getUsername())
-                            .password(existingDoctor.getUser().getPassword())
-                            .role(DOCTOR)
-                            .userId(existingDoctor.getDoctorId())
-                            .active(true)
-                            .build())
-                    .qualifications(doctorModel.getQualifications() == null ? existingDoctor.getQualifications() : doctorModel.getQualifications())
-                    .department(department)
-                    .build();
-            doctorRepository.delete(existingDoctor);
-            doctorRepository.save(doctorToBeUpdated);
+
+            doctorRepository.save(existingDoctor);
             return ResponseEntity.ok("Successfully updated");
         } catch (Exception e) {
+            System.out.println(e);
             return ResponseEntity.status(500).build();
         }
     }
