@@ -1,9 +1,6 @@
 package com.example.backend.Controllers;
 
-import com.example.backend.Entities.Departments;
-import com.example.backend.Entities.Doctors;
-import com.example.backend.Entities.Patients;
-import com.example.backend.Entities.Records;
+import com.example.backend.Entities.*;
 import com.example.backend.Models.DoctorModel;
 import com.example.backend.Models.FileUpload;
 import com.example.backend.Models.PatientDetailsModel;
@@ -11,11 +8,13 @@ import com.example.backend.Models.RecordModel;
 import com.example.backend.Models.frontend.RequestRecords;
 import com.example.backend.Repositories.DepartmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
+import com.example.backend.Repositories.UserRepository;
 import com.example.backend.Services.ABDMServices;
 import com.example.backend.Services.DoctorService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import reactor.core.publisher.Mono;
 
 import org.springframework.web.bind.annotation.*;
@@ -46,6 +45,10 @@ public class DoctorController {
 
     @Autowired
     private DoctorService doctorService;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/createRecord")
     public ResponseEntity<Records> createRecord(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestParam String txnId, @RequestBody RecordModel toAdd) {
@@ -80,6 +83,7 @@ public class DoctorController {
                 doctorModel.setName(doctor.getUser().getName());
                 doctorModel.setEmail(doctor.getUser().getEmail());
                 doctorModel.setGender(doctor.getUser().getGender());
+                doctorModel.setUsername(doctor.getUser().getUsername());
                 doctorModel.setQualifications(doctor.getQualifications());
                 doctorModel.setDepartment(doctor.getDepartment().getName());
                 doctorModel.setPhone(doctor.getUser().getPhone());
@@ -101,6 +105,7 @@ public class DoctorController {
             doctorModel.setName(doctor.getUser().getName());
             doctorModel.setEmail(doctor.getUser().getEmail());
             doctorModel.setGender(doctor.getUser().getGender());
+            doctorModel.setUsername(doctor.getUser().getUsername());
             doctorModel.setQualifications(doctor.getQualifications());
             doctorModel.setDepartment(doctor.getDepartment().getName());
             doctorModel.setPhone(doctor.getUser().getPhone());
@@ -115,46 +120,72 @@ public class DoctorController {
     public ResponseEntity<String> createDoctor(@RequestBody DoctorModel doctorModel) {
         try {
             Departments department = departmentRepository.findByName(doctorModel.getDepartment());
-            if(department==null)
-                return ResponseEntity.ok("Department doesn't Exists");
-            Doctors doctor = new Doctors();
-            doctor.getUser().setName(doctorModel.getName());
-            doctor.getUser().setEmail(doctorModel.getEmail());
-            doctor.getUser().setGender(doctorModel.getGender());
-            doctor.getUser().setUsername(doctorModel.getUsername());
-            doctor.getUser().setPhone(doctorModel.getPhone());
-            doctor.getUser().setRole(DOCTOR);
-            doctor.setQualifications(doctorModel.getQualifications());
-            doctor.setDepartment(department);
+            if (department == null)
+                return ResponseEntity.ok("Department doesn't exist");
+
+            Users user = new Users();
+            user.setName(doctorModel.getName());
+            user.setEmail(doctorModel.getEmail());
+            user.setGender(doctorModel.getGender());
+            user.setUsername(doctorModel.getUsername());
+            user.setPhone(doctorModel.getPhone());
+            user.setPassword(passwordEncoder.encode(doctorModel.getPassword()));
+            user.setRole(DOCTOR);
+            user.setActive(true);
+            Doctors doctor = Doctors.builder()
+                    .user(user)
+                    .qualifications(doctorModel.getQualifications())
+                    .department(department)
+                    .build();
             doctorRepository.save(doctor);
-            return ResponseEntity.ok("Succesfully created");
+            return ResponseEntity.ok("Successfully created");
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
     }
 
+
     @PutMapping("/updateDoctor/{email}")
-    public ResponseEntity<String> updateDoctor(@PathVariable String email,@RequestBody DoctorModel doctorModel) {
+    public ResponseEntity<String> updateDoctor(@PathVariable String email, @RequestBody DoctorModel doctorModel) {
         try {
-            Optional<Doctors> doctor = doctorRepository.findByUserEmailAndUserActiveTrue(email);
-            if(doctor.isEmpty())
-                return ResponseEntity.ok("Doctor doesn't Exists");
+            // Check if the provided email is unique
+            Optional<Doctors> optionalDoctorWithSameEmail = doctorRepository.findByUserEmailAndUserActiveTrue(email);
+            if (optionalDoctorWithSameEmail.isEmpty()) {
+                return ResponseEntity.ok("Doctor with the provided email doesn't exist");
+            }
+
+            Doctors existingDoctor = optionalDoctorWithSameEmail.get();
+
+            // If the provided email is different from the existing one, check uniqueness
+            if (!email.equals(doctorModel.getEmail())) {
+                Optional<Doctors> doctorWithEmail = doctorRepository.findByUserEmailAndUserActiveTrue(doctorModel.getEmail());
+                if (doctorWithEmail.isPresent()) {
+                    return ResponseEntity.ok("Email already exists for another doctor");
+                }
+            }
+
             Departments department = departmentRepository.findByName(doctorModel.getDepartment());
-            if(department==null)
-                return ResponseEntity.ok("Department doesn't Exists");
-            Doctors doctorToBeUpdated = doctor.get();
-            doctorToBeUpdated.getUser().setName(doctorModel.getName());
-            doctorToBeUpdated.getUser().setEmail(doctorModel.getEmail());
-            doctorToBeUpdated.getUser().setGender(doctorModel.getGender());
-            doctorToBeUpdated.setQualifications(doctorModel.getQualifications());
-            doctorToBeUpdated.getUser().setPhone(doctorModel.getPhone());
-            doctorToBeUpdated.setDepartment(department);
-            doctorRepository.save(doctorToBeUpdated);
-            return ResponseEntity.ok("Succesfully Updated");
+            if (department == null) {
+                return ResponseEntity.ok("Department doesn't exist");
+            }
+            existingDoctor.getUser().setName(doctorModel.getName() == null ? existingDoctor.getUser().getName() : doctorModel.getName());
+            existingDoctor.getUser().setEmail(doctorModel.getEmail() == null ? existingDoctor.getUser().getEmail() : doctorModel.getEmail());
+            existingDoctor.getUser().setGender(doctorModel.getGender() == null ? existingDoctor.getUser().getGender() : doctorModel.getGender());
+            existingDoctor.getUser().setPhone(doctorModel.getPhone() == null ? existingDoctor.getUser().getPhone() : doctorModel.getPhone());
+            existingDoctor.getUser().setUsername(doctorModel.getUsername() == null ? existingDoctor.getUser().getUsername() : doctorModel.getUsername());
+            existingDoctor.setQualifications(doctorModel.getQualifications());
+            existingDoctor.setDepartment(department);
+
+
+            doctorRepository.save(existingDoctor);
+            return ResponseEntity.ok("Successfully updated");
         } catch (Exception e) {
+            System.out.println(e);
             return ResponseEntity.status(500).build();
         }
     }
+
+
 
     @DeleteMapping("/deleteDoctor/{email}")
     public ResponseEntity<String> deleteDoctor(@PathVariable String email) {
