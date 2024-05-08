@@ -89,6 +89,9 @@ public class CallbackServices {
     @Autowired
     private ExternalRecordsRepository externalRecordsRepository;
 
+    @Autowired
+    private FHIRServices fhirServices;
+
     public void onGenerateLinkingToken(GenerateLinkingTokenRes req) {
         Patients patient = patientRepository.findByAbhaAddress(req.getAbhaAddress());
         patient.setLinkToken(req.getLinkToken());
@@ -163,10 +166,32 @@ public class CallbackServices {
             consent.setStatus(req.getNotification().getStatus());
             consent.setConsentArtefactId(req.getNotification().getConsentArtefacts().get(0).getId());
             consentRepository.save(consent);
-            consentRepository.flush();
+            // consentRepository.flush();
             try {
                 Thread.sleep(3000);
                 abdmServices.requestHealthData(req);
+            }
+            catch (Exception e) {
+                System.out.println("Error in CallbackServices->consentRequestNotify: " + e.getLocalizedMessage());
+                e.printStackTrace();
+            }
+        }
+        else if(req.getNotification().getStatus().equals("REVOKED")) {
+            this.deleteRevokedRecords(req);
+        }
+    }
+
+    public void consentRequestNotifyDummy(HIUConsentReqNotify req) {
+        String consentReqId = req.getNotification().getConsentRequestId();
+        if(req.getNotification().getStatus().equals("GRANTED")) {
+            Consents consent = consentRepository.findByConsentReqId(consentReqId);
+            consent.setStatus(req.getNotification().getStatus());
+            consent.setConsentArtefactId(req.getNotification().getConsentArtefacts().get(0).getId());
+            consentRepository.save(consent);
+            // consentRepository.flush();
+            try {
+                Thread.sleep(3000);
+                abdmServices.requestHealthDataDummy(req);
             }
             catch (Exception e) {
                 System.out.println("Error in CallbackServices->consentRequestNotify: " + e.getLocalizedMessage());
@@ -341,7 +366,7 @@ public class CallbackServices {
         System.out.println("Contents of careContextSet: " + careContextSet);
         System.out.println("All records: " + allRecords);
         for(Records r: allRecords) {
-            if(careContextSet.contains(r.getCareContext().getReferenceNumber())) {
+            if(careContextSet.contains(r.getCareContext().getArtefactId())) {
                 requiredRecords.add(r);
             }
         }
@@ -400,6 +425,28 @@ public class CallbackServices {
                     toAdd.setContent(encryptedJson);
                     toAdd.setChecksum(Long.toString(checksum.getValue()));
                 }
+                else if(r.getRecordType().equals("HealthDocumentRecord")) {
+                    String text = sb.toString();
+                    text = cryptographyUtil.decrypt(text);
+                    String json = fhirServices.createHealthDocument(r, text);
+                    HashMap<String, String> hm = new HashMap<>();
+                    hm.put("content", json);
+                    hm.put("careContextReference", r.getCareContext().getReferenceNumber());
+                    hm.put("date", df.format(r.getDate()));
+                    hm.put("doctor", r.getDoctor().getUser().getName());
+                    hm.put("display", r.getDisplay());
+                    hm.put("type", r.getRecordType());
+                    hm.put("text", text);
+                    Gson gson = new Gson();
+                    json = gson.toJson(hm);
+                    String encryptedJson = cryptographyUtil.fideliusEncrypt(json, req.getHiRequest().getKeyMaterial().getNonce(), req.getHiRequest().getKeyMaterial().getDhPublicKey().getKeyValue());
+                    Checksum checksum = new CRC32();
+                    checksum.update(encryptedJson.getBytes(), 0, encryptedJson.getBytes().length);
+                    toAdd.setMedia("application/fhir+json");
+                    toAdd.setCareContextReference(r.getCareContext().getReferenceNumber());
+                    toAdd.setContent(encryptedJson);
+                    toAdd.setChecksum(Long.toString(checksum.getValue()));
+                }
                 else {
                     String text = sb.toString();
                     text = cryptographyUtil.decrypt(text);
@@ -432,7 +479,7 @@ public class CallbackServices {
             }
             catch (FileNotFoundException e) {
                 System.out.println("File not found for care context: " + r.getCareContext().getArtefactId());
-                
+                e.printStackTrace();
                 StatusResponses statusResponse = new StatusResponses();
                 statusResponse.setCareContextReference(r.getCareContext().getReferenceNumber());
                 statusResponse.setDescription("FAILED");
@@ -441,7 +488,7 @@ public class CallbackServices {
             }
             catch (Exception e) {
                 System.out.println("Error for care context: " + r.getCareContext().getArtefactId());
-
+                e.printStackTrace();
                 StatusResponses statusResponse = new StatusResponses();
                 statusResponse.setCareContextReference(r.getCareContext().getReferenceNumber());
                 statusResponse.setDescription("FAILED");
@@ -460,7 +507,7 @@ public class CallbackServices {
             System.out.println();
             webClient
             .post()
-            .uri(new URI(transferInfo.getDataPushUrl()))
+            .uri(new URI(req.getHiRequest().getDataPushUrl()))
             .bodyValue(toSend)
             .retrieve()
             .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
@@ -520,6 +567,231 @@ public class CallbackServices {
         }
         catch (Exception e) {
             System.out.println("Error in CallbackServices->transferHealthData: " + e.getLocalizedMessage());
+            e.printStackTrace();
+        }
+
+    }
+
+    public void transferHealthDataDummy(DataTransferReq req) {
+        DataTransfers transferInfo = dataTransferRepository.findByReqId(req.getHiRequest().getConsent().getId());
+        if(transferInfo == null) {
+            return;
+        }
+        Patients patient = patientRepository.findByAbhaAddress(transferInfo.getAbhaAddress());
+        List<Records> allRecords = patient.getRecords();
+        List<Records> requiredRecords = new ArrayList<>();
+        HashSet<String> careContextSet = new HashSet<>();
+        
+        System.out.println("Size of carecontexts: " + transferInfo.getCareContexts().size());
+        for(ConsentReqNotify.CareContext c: transferInfo.getCareContexts()) {
+            careContextSet.add(c.getCareContextReference());
+        }
+        System.out.println("Size of carecontextSet: " + careContextSet.size());
+        System.out.println("Contents of careContextSet: " + careContextSet);
+        System.out.println("All records: " + allRecords);
+        for(Records r: allRecords) {
+            if(careContextSet.contains(r.getCareContext().getArtefactId())) {
+                requiredRecords.add(r);
+            }
+        }
+
+        DataTransferRes toSend = new DataTransferRes();
+        toSend.setTransactionId(req.getTransactionId());
+        
+        DataTransferRes.KeyMaterial keyMaterial = new DataTransferRes.KeyMaterial();
+        keyMaterial.setCryptoAlg("ECDH");
+        keyMaterial.setCurve("Curve25519");
+
+        DataTransferRes.DhPublicKey dhPublicKey = new DataTransferRes.DhPublicKey();
+        dhPublicKey.setKeyValue(cryptographyUtil.getKeys().getPublicKey());
+        dhPublicKey.setParameters("Curve25519/32byte random key");
+        long expiry = new Date().getTime() + (24l * 60l * 60l * 1000l);
+        Date expiryDate = new Date(expiry);
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        dhPublicKey.setExpiry(df.format(expiryDate));
+        keyMaterial.setDhPublicKey(dhPublicKey);
+        keyMaterial.setNonce(cryptographyUtil.getKeys().getNonce());
+        
+        toSend.setKeyMaterial(keyMaterial);
+
+        List<DataTransferRes.Entries> entries = new ArrayList<>();
+
+        List<StatusResponses> notifyList = new ArrayList<>();
+
+        for(Records r: requiredRecords) {
+            try {
+                File f = new File(r.getFilePath());
+                DataTransferRes.Entries toAdd = new DataTransferRes.Entries();
+
+                Scanner sc = new Scanner(f);
+                StringBuilder sb = new StringBuilder();
+                while(sc.hasNextLine()) {
+                    sb.append(sc.nextLine());
+                }
+                sc.close();
+                if(r.getRecordType().equals("Prescription")) {
+                    String json = sb.toString();
+                    json = cryptographyUtil.decrypt(json);
+                    HashMap<String, String> hm = new HashMap<>();
+                    hm.put("content", json);
+                    hm.put("careContextReference", r.getCareContext().getReferenceNumber());
+                    hm.put("date", df.format(r.getDate()));
+                    hm.put("doctor", r.getDoctor().getUser().getName());
+                    hm.put("display", r.getDisplay());
+                    hm.put("type", r.getRecordType());
+                    Gson gson = new Gson();
+                    json = gson.toJson(hm);
+                    String encryptedJson = cryptographyUtil.fideliusEncrypt(json, req.getHiRequest().getKeyMaterial().getNonce(), req.getHiRequest().getKeyMaterial().getDhPublicKey().getKeyValue());
+                    Checksum checksum = new CRC32();
+                    checksum.update(encryptedJson.getBytes(), 0, encryptedJson.getBytes().length);
+                    toAdd.setMedia("application/fhir+json");
+                    toAdd.setCareContextReference(r.getCareContext().getReferenceNumber());
+                    toAdd.setContent(encryptedJson);
+                    toAdd.setChecksum(Long.toString(checksum.getValue()));
+                }
+                else if(r.getRecordType().equals("HealthDocumentRecord")) {
+                    String text = sb.toString();
+                    text = cryptographyUtil.decrypt(text);
+                    String json = fhirServices.createHealthDocument(r, text);
+                    HashMap<String, String> hm = new HashMap<>();
+                    hm.put("content", json);
+                    hm.put("careContextReference", r.getCareContext().getReferenceNumber());
+                    hm.put("date", df.format(r.getDate()));
+                    hm.put("doctor", r.getDoctor().getUser().getName());
+                    hm.put("display", r.getDisplay());
+                    hm.put("type", r.getRecordType());
+                    hm.put("text", text);
+                    Gson gson = new Gson();
+                    json = gson.toJson(hm);
+                    String encryptedJson = cryptographyUtil.fideliusEncrypt(json, req.getHiRequest().getKeyMaterial().getNonce(), req.getHiRequest().getKeyMaterial().getDhPublicKey().getKeyValue());
+                    Checksum checksum = new CRC32();
+                    checksum.update(encryptedJson.getBytes(), 0, encryptedJson.getBytes().length);
+                    toAdd.setMedia("application/fhir+json");
+                    toAdd.setCareContextReference(r.getCareContext().getReferenceNumber());
+                    toAdd.setContent(encryptedJson);
+                    toAdd.setChecksum(Long.toString(checksum.getValue()));
+                }
+                else {
+                    String text = sb.toString();
+                    text = cryptographyUtil.decrypt(text);
+                    HashMap<String, String> hm = new HashMap<>();
+                    hm.put("content", text);
+                    hm.put("careContextReference", r.getCareContext().getReferenceNumber());
+                    hm.put("date", df.format(r.getDate()));
+                    hm.put("doctor", r.getDoctor().getUser().getName());
+                    hm.put("display", r.getDisplay());
+                    hm.put("type", r.getRecordType());
+
+                    Gson gson = new Gson();
+                    String json = gson.toJson(hm);
+                    String encryptedJson = cryptographyUtil.fideliusEncrypt(json, req.getHiRequest().getKeyMaterial().getNonce(), req.getHiRequest().getKeyMaterial().getDhPublicKey().getKeyValue());
+                    Checksum checksum = new CRC32();
+                    checksum.update(encryptedJson.getBytes(), 0, encryptedJson.getBytes().length);
+                    
+                    toAdd.setMedia("application/json");
+                    toAdd.setCareContextReference(r.getCareContext().getReferenceNumber());
+                    toAdd.setContent(encryptedJson);
+                    toAdd.setChecksum(Long.toString(checksum.getValue()));
+                }
+                entries.add(toAdd);
+                
+                StatusResponses statusResponse = new StatusResponses();
+                statusResponse.setCareContextReference(r.getCareContext().getReferenceNumber());
+                statusResponse.setDescription("TRANSFERRED");
+                statusResponse.setHiStatus("OK");
+                notifyList.add(statusResponse);
+            }
+            catch (FileNotFoundException e) {
+                System.out.println("File not found for care context: " + r.getCareContext().getArtefactId());
+                e.printStackTrace();
+                StatusResponses statusResponse = new StatusResponses();
+                statusResponse.setCareContextReference(r.getCareContext().getReferenceNumber());
+                statusResponse.setDescription("FAILED");
+                statusResponse.setHiStatus("FAILED");
+                notifyList.add(statusResponse);
+            }
+            catch (Exception e) {
+                System.out.println("Error for care context: " + r.getCareContext().getArtefactId());
+                e.printStackTrace();
+                StatusResponses statusResponse = new StatusResponses();
+                statusResponse.setCareContextReference(r.getCareContext().getReferenceNumber());
+                statusResponse.setDescription("FAILED");
+                statusResponse.setHiStatus("FAILED");
+                notifyList.add(statusResponse);
+            }
+        }
+
+        toSend.setEntries(entries);
+
+        try {
+            WebClient webClient = WebClient.create();
+            System.out.println("Sending:");
+            System.out.println(toSend);
+            System.out.println();
+            System.out.println();
+            webClient
+            .post()
+            .uri(new URI(req.getHiRequest().getDataPushUrl()))
+            .bodyValue(toSend)
+            .retrieve()
+            .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
+                        response -> response.bodyToMono(String.class).flatMap(body -> {
+                            System.out.println("Error response body: " + body);
+                            return null;
+                        }))
+            .bodyToMono(Void.class)
+            .subscribe((args) -> {
+                System.out.println("CallbackServices->transferHealthData: sent data");
+
+                DataTransferNotify notifyABDM = new DataTransferNotify();
+                notifyABDM.setRequestId(UUID.randomUUID().toString());
+                notifyABDM.setTimestamp(abdmServices.getTimeStamp());
+                
+                DataTransferNotify.Notification notification = new DataTransferNotify.Notification();
+                notification.setConsentId(transferInfo.getReqId());
+                notification.setTransactionId(transferInfo.getTransactionId());
+
+                DataTransferNotify.Notifier notifier = new DataTransferNotify.Notifier();
+                notifier.setId(hmisId);
+                notifier.setId("HIP");
+                notification.setNotifier(notifier);
+
+                DataTransferNotify.Notification.StatusNotification statusNotification = new StatusNotification();
+                statusNotification.setSessionStatus("TRANSFERRED");
+                statusNotification.setHipId(hmisId);
+                statusNotification.setStatusResponses(notifyList);
+                notification.setStatusNotification(statusNotification);
+                
+                notifyABDM.setNotification(notification);
+
+                try {
+                    // WebClient webClient2 = WebClient.create();
+                    // abdmServices.initiateSession();
+                    // webClient2
+                    // .post()
+                    // .uri(new URI("https://dev.abdm.gov.in/gateway/v0.5/health-information/notify"))
+                    // .header("Authorization", "Bearer " + abdmServices.getAccessToken())
+                    // .header("X-CM-ID", "sbx")
+                    // .bodyValue(notifyABDM)
+                    // .retrieve()
+                    // .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
+                    //         response -> response.bodyToMono(String.class).flatMap(body -> {
+                    //             System.out.println("Error response body: " + body);
+                    //             return null;
+                    //         }))
+                    // .bodyToMono(Void.class)
+                    // .subscribe((args2) -> {
+                    //     System.out.println("ABDM notified");
+                    // });
+                }
+                catch (Exception e) {
+                    System.out.println("Error in notifying ABDM");
+                }
+            });
+        }
+        catch (Exception e) {
+            System.out.println("Error in CallbackServices->transferHealthData: " + e.getLocalizedMessage());
+            e.printStackTrace();
         }
 
     }
@@ -556,6 +828,7 @@ public class CallbackServices {
             toAdd.setExpiry(request.getExpiry());
             Gson gson = new Gson();
             HashMap<String, String> hm = new HashMap<>();
+            System.out.println("Decrypted content: " + decryptedContent);
             hm = gson.fromJson(decryptedContent, hm.getClass());
             hm = gson.fromJson(hm.get("decryptedData"), HashMap.class);
             toAdd.setDate(df.parse(hm.getOrDefault("date", "1970-01-01T00:00:00.000Z")));
@@ -566,12 +839,26 @@ public class CallbackServices {
             toAdd.setConsentArtefactId(request.getConsentArtefactId());
 
             File recordFile = new File(recordBasePath + patient.getPatientId() + "_" + df.parse(hm.getOrDefault("date", "1970-01-01T00:00:00.000Z")));
-            if(recordFile.createNewFile()) {
-                FileWriter writer = new FileWriter(recordFile);
-                String content = hm.get("content");
-                content = cryptographyUtil.encrypt(content);
-                writer.write(content);
-                writer.close();
+            if(toAdd.getRecordType().equals("HealthDocumentRecord")) {
+                if(recordFile.createNewFile()) {
+                    FileWriter writer = new FileWriter(recordFile);
+                    String content = hm.get("text");
+                    content = cryptographyUtil.encrypt(content);
+                    writer.write(content);
+                    writer.close();
+                }
+
+                String fhirContent = hm.get("content");
+                fhirServices.saveHealthRecordFiles(fhirContent, toAdd, request.getTransactionId());
+            }
+            else {
+                if(recordFile.createNewFile()) {
+                    FileWriter writer = new FileWriter(recordFile);
+                    String content = hm.get("content");
+                    content = cryptographyUtil.encrypt(content);
+                    writer.write(content);
+                    writer.close();
+                }
             }
             toAdd = externalRecordsRepository.save(toAdd);
 
@@ -604,6 +891,9 @@ public class CallbackServices {
         notifyABDM.setNotification(notification);
 
         try {
+
+            // TODO: Remove comment before pushing
+
             WebClient webClient2 = WebClient.create();
             abdmServices.initiateSession();
             webClient2
@@ -689,6 +979,55 @@ public class CallbackServices {
         catch (Exception e) {
             System.out.println("Error in CallbackServices->hipConsentNotify: " + e.getLocalizedMessage());
         }
+        DataTransfers transfer = new DataTransfers();
+        transfer.setReqId(req.getNotification().getConsentDetail().getConsentId());
+        transfer.setFromDate(req.getNotification().getConsentDetail().getPermission().getDateRange().getFrom());
+        transfer.setToDate(req.getNotification().getConsentDetail().getPermission().getDateRange().getTo());
+        transfer.setCareContexts(req.getNotification().getConsentDetail().getCareContexts());
+        transfer.setAbhaAddress(req.getNotification().getConsentDetail().getPatient().getId());
+        dataTransferRepository.save(transfer);
+    }
+
+    public void hipConsentNotifyDummy(String reqId, ConsentReqNotify req) {
+        ConsentAck res = new ConsentAck();
+        res.setRequestId(UUID.randomUUID().toString());
+        res.setTimestamp(abdmServices.getTimeStamp());
+        
+        ConsentAck.Resp resp = new ConsentAck.Resp();
+        resp.setRequestId(reqId);
+        res.setResp(resp);
+
+        ConsentAck.Acknowledgement ack = new ConsentAck.Acknowledgement();
+        ack.setStatus("OK");
+        ack.setConsentId(req.getNotification().getConsentDetail().getConsentId());
+        res.setAcknowledgement(ack);
+
+        try {
+            // abdmServices.initiateSession();
+
+            // WebClient webClient = WebClient.create();
+
+            // webClient
+            // .post()
+            // .uri(new URI("https://dev.abdm.gov.in/gateway/v0.5/consents/hip/on-notify"))
+            // .header("Authorization", "Bearer " + abdmServices.getAccessToken())
+            // .header("X-CM-ID", "sbx")
+            // .bodyValue(res)
+            // .retrieve()
+            // .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
+            //         response -> response.bodyToMono(String.class).flatMap(body -> {
+            //             System.out.println("Error response body: " + body);
+            //             return null;
+            //         }))
+            // .bodyToMono(Void.class)
+            // .subscribe((args2) -> {
+            //     System.out.println("ABDM notified");
+            // });
+        }
+        catch (Exception e) {
+            System.out.println("Error in CallbackServices->dummyHipConsentNotify: " + e.getLocalizedMessage());
+        }
+
         DataTransfers transfer = new DataTransfers();
         transfer.setReqId(req.getNotification().getConsentDetail().getConsentId());
         transfer.setFromDate(req.getNotification().getConsentDetail().getPermission().getDateRange().getFrom());

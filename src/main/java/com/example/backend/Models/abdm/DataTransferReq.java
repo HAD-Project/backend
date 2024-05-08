@@ -4,17 +4,20 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class DataTransferReq {
 
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @ToString
     public static class Consent {
         private String id;
     }
@@ -23,6 +26,7 @@ public class DataTransferReq {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @ToString
     public static class DateRange {
         private String from;
         private String to;
@@ -32,6 +36,7 @@ public class DataTransferReq {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @ToString
     public static class DhPublicKey {
         private String expiry;
         private String parameters;
@@ -42,6 +47,7 @@ public class DataTransferReq {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @ToString
     public static class KeyMaterial {
         private String cryptoAlg;
         private String curve;
@@ -53,6 +59,7 @@ public class DataTransferReq {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @ToString
     public static class HiRequest {
         private Consent consent;
         private DateRange dateRange;

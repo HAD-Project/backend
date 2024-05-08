@@ -158,6 +158,21 @@ public class BackendApplication {
 		patient.setTreatedBy(treatedBy);
 		patient = patientRepository.save(patient);
 
+		Patients patient2 = new Patients();
+		patient2.setPatientId(2);
+		Date dob2 = format.parse("2001-10-25");
+		patient2.setDob(dob2);
+		patient2.setAbhaId("91-6586-5064-7428");
+		patient2.setGender("M");
+		patient2.setMobileNo("9324846868");
+		patient2.setName("Sridhar S Menon");
+		patient2.setAbhaAddress("sridharmenon@sbx");
+		patient2.setLinkToken("eyJhbGciOiJSUzUxMiJ9.eyJoaXBJZCI6IkhBRF8wMSIsInN1YiI6InNyaWRoYXJtZW5vbkBzYngiLCJhYmhhTnVtYmVyIjpudWxsLCJleHAiOjE3MzA5MTg3NjQsImlhdCI6MTcxNTE1MDc2NCwidHJhbnNhY3Rpb25JZCI6ImQyODA0MGExLThiOWMtNDRkOS04NzNkLWRiNWI5ZmJmNjY5ZSIsImFiaGFBZGRyZXNzIjoic3JpZGhhcm1lbm9uQHNieCJ9.x079loy5Ba_mqevZAkcwCDsMfiIuUNQukIQQ1qP4ztIU0NWgVbpBqZrqpAAbRaE-zjaJjdINH2PJBgt5ZwU6u6_mlhMakwY9Zl550k8e2cUzTRxsMHdyQVuZ7onXRPUgiEImznqXl32hMxEyhwAWdaN_kYiyE_7o_uOwMyBxjSUZRK7q0WpmXzoYJmIOQtRDELkxKxBa8OpG_AeGMpbLVYoQ6BjeV103YpAVBdH1uwJMOzLezJ65hZjVSNdfDGXYmCH4FUbL1B4rYcDMl6u6SDsBrxfsf3m1xvE-KSTpz579v4d4jI42rv1ZHCN-h5Pd55jOf0HNonXe1OtqbnCGHQ");
+		List<Doctors> treatedBy2 = new ArrayList<>();
+		treatedBy2.add(doctors);
+		patient2.setTreatedBy(treatedBy2);
+		patient2 = patientRepository.save(patient2);
+
 		cryptographyUtil.generateKeySet();
 		System.out.println("Generated keys: ");
 		System.out.println(cryptographyUtil.getKeys());

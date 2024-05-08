@@ -64,6 +64,12 @@ public class CallbackController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/api/v3/hip/health-information/request/dummy")
+    public ResponseEntity<Void> transferHealthDataDummy(@RequestBody DataTransferReq req) {
+        callbackServices.transferHealthDataDummy(req);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/api/v3/hiu/consent/request/on-init")
     public ResponseEntity<Void> consentRequestOnInit(@RequestBody ConsentReqOnInit req) {
         callbackServices.consentRequestOnInit(req);
@@ -73,6 +79,12 @@ public class CallbackController {
     @PostMapping("/api/v3/hiu/consent/request/notify")
     public ResponseEntity<Void> consentRequestNotify(@RequestBody HIUConsentReqNotify req) {
         callbackServices.consentRequestNotify(req);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/api/v3/hiu/consent/request/notify/dummy")
+    public ResponseEntity<Void> consentRequestNotifyDummy(@RequestBody HIUConsentReqNotify req) {
+        callbackServices.consentRequestNotifyDummy(req);
         return ResponseEntity.ok().build();
     }
 
@@ -94,7 +106,8 @@ public class CallbackController {
             callbackServices.receiveHealthData(req);
         }
         catch (Exception e) {
-            System.out.println("Erro in CallbackController->heathInformationTransfer: " + e.getLocalizedMessage());
+            System.out.println("Error in CallbackController->heathInformationTransfer: " + e.getLocalizedMessage());
+            e.printStackTrace();
         }
         return ResponseEntity.ok().build();
     }
@@ -102,6 +115,12 @@ public class CallbackController {
     @PostMapping("/api/v3/consent/request/hip/notify")
     public ResponseEntity<Void> hipConsentNotify(@RequestHeader(value = "request-id") String reqId, @RequestBody ConsentReqNotify req) {
         callbackServices.hipConsentNotify(reqId, req);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/api/v3/consent/request/hip/notify/dummy")
+    public ResponseEntity<Void> hipConsentNotifyDummy(@RequestHeader(value = "request-id") String reqId, @RequestBody ConsentReqNotify req) {
+        callbackServices.hipConsentNotifyDummy(reqId, req);
         return ResponseEntity.ok().build();
     }
 }

@@ -2,7 +2,6 @@ package com.example.backend.Entities;
 
 import java.io.Serializable;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -33,4 +32,7 @@ public class RawFiles implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Records record;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private ExternalRecords externalRecord;
 }

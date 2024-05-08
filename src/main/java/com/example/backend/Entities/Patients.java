@@ -69,6 +69,7 @@ public class Patients {
     private List<Consents> consents;
 
     @Column(name = "external_records")
+    @JsonIgnore
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExternalRecords> externalRecords;
 }

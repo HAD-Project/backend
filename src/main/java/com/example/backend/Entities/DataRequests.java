@@ -29,7 +29,7 @@ public class DataRequests {
     @Column(name = "transaction_id")
     private String transactionId;
 
-    @Column(name = "consent_id")
+    @Column(name = "consent_artefact_id")
     private String consentArtefactId;
 
     @Column(name = "status")

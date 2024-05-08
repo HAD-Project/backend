@@ -9,14 +9,12 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.ContentDisposition;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.Resource;
 
 import com.example.backend.Config.JwtService;
 import com.example.backend.Entities.Appointments;
@@ -43,13 +41,10 @@ import com.example.backend.cryptography.CryptographyUtil;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+
 
 import org.springframework.http.MediaType;
 
-import javassist.bytecode.ExceptionTable;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -59,7 +54,6 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -168,7 +162,7 @@ public class DoctorService {
                newRecord.setFilePath(recordBasePath + toAdd.getPatientId() + "_" + toAdd.getDate());
                Records savedRecord = recordRepository.save(newRecord);
                careContext.setRecord(newRecord);
-               CareContext savedCareContext = careContextRepository.save(careContext);
+               careContext = careContextRepository.save(careContext);
                newRecord.setCareContext(careContext);
                savedRecord = recordRepository.save(newRecord);
 
@@ -179,10 +173,10 @@ public class DoctorService {
                     rawFilesRepository.save(rawFile);
                 }
                }
-            //    if(patient.getAbhaAddress() != null) {
-            //         abdmServices.linkRecord(savedRecord, patient, careContext)
-            //             .subscribe((args) -> {System.out.println("Record linked");});
-            //    }
+               if(patient.getAbhaAddress() != null) {
+                    abdmServices.linkRecord(savedRecord, patient, careContext)
+                        .subscribe((args) -> {System.out.println("Record linked");});
+               }
                return savedRecord;
            }
            else {
@@ -195,7 +189,6 @@ public class DoctorService {
            return null;
        }
    }
-
 
    public List<RecordModel> getRecords(int patientId) throws FileNotFoundException {
     Patients patient = patientRepository.findByPatientId(patientId);
@@ -255,6 +248,19 @@ public class DoctorService {
             json = cryptographyUtil.decrypt(json);
             toAdd.setPrescriptionList(new ArrayList<>());
             toAdd.getPrescriptionList().addAll(fhirServices.toPrescriptionModel(json));
+        }
+        else if(r.getRecordType().equals("HealthDocumentRecord")) {
+            List<FileModel> files = new ArrayList<>();
+            for(RawFiles rawFile: r.getFiles()) {
+                FileModel toAddFile = new FileModel();
+                toAddFile.setId(rawFile.getId());
+                toAddFile.setFileName(rawFile.getName());
+                files.add(toAddFile);
+            }
+            toAdd.setFiles(files);
+            String text = sb.toString();
+            text = cryptographyUtil.decrypt(text);
+            toAdd.setText(text);
         }
         else {
             String text = sb.toString();

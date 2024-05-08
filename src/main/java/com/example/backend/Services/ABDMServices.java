@@ -45,6 +45,7 @@ import com.example.backend.Models.abdm.LinkCareContextReq;
 import com.example.backend.Repositories.CareContextRepository;
 import com.example.backend.Repositories.ConsentRepository;
 import com.example.backend.Repositories.DataRequestRepository;
+import com.example.backend.Repositories.DataTransferRepository;
 import com.example.backend.Repositories.PatientRepository;
 import com.example.backend.cryptography.CryptographyUtil;
 import com.google.gson.Gson;
@@ -78,6 +79,9 @@ public class ABDMServices {
 
     @Autowired
     private CryptographyUtil cryptographyUtil;
+
+    @Autowired
+    private DataTransferRepository dataTransferRepository;
 
     private Keys keys;
 
@@ -412,6 +416,9 @@ public class ABDMServices {
         req.setPatient(new ArrayList<>());
         req.getPatient().add(careContextPatient);
 
+        careContext.setArtefactId(careContextModel.getReferenceNumber());
+        careContext = careContextRepository.save(careContext);
+
 
         System.out.println("Sending linking request");
         System.out.println(req);
@@ -534,10 +541,14 @@ public class ABDMServices {
 
     public void requestHealthData(HIUConsentReqNotify req) {
         DataTransferReq dataTransferReq = new DataTransferReq();
-        Consents consent = consentRepository.findByConsentArtefactId(req.getNotification().getConsentArtefacts().get(0).getId());
-        req.getNotification().getConsentArtefacts().remove(0);
+        Consents consent = consentRepository.findByConsentReqId(req.getNotification().getConsentRequestId());
+        // req.getNotification().getConsentArtefacts().remove(0);
         for(HIUConsentReqNotify.ConsentArtefact ca: req.getNotification().getConsentArtefacts()) {
-    
+            System.out.println("CA: " + ca);
+            if(dataTransferRepository.findByReqId(ca.getId()) != null) {
+                continue;
+            }
+            
             String dataTransferReqId = UUID.randomUUID().toString();
             dataTransferReq.setRequestId(dataTransferReqId);
             dataTransferReq.setTimestamp(getTimeStamp());
@@ -610,6 +621,94 @@ public class ABDMServices {
                 .subscribe(args -> {
                     System.out.println("requestHealthData: Request made");
                 });
+            }
+            catch (Exception e) {
+                System.out.println("Error in ABDMServices->requestHealthData: " + e.getLocalizedMessage());
+            }
+        }
+    }
+
+    public void requestHealthDataDummy(HIUConsentReqNotify req) {
+        DataTransferReq dataTransferReq = new DataTransferReq();
+        Consents consent = consentRepository.findByConsentArtefactId(req.getNotification().getConsentArtefacts().get(0).getId());
+        req.getNotification().getConsentArtefacts().remove(0);
+        for(HIUConsentReqNotify.ConsentArtefact ca: req.getNotification().getConsentArtefacts()) {
+    
+            String dataTransferReqId = UUID.randomUUID().toString();
+            dataTransferReq.setRequestId(dataTransferReqId);
+            dataTransferReq.setTimestamp(getTimeStamp());
+    
+            DataTransferReq.HiRequest hiRequest = new DataTransferReq.HiRequest();
+            
+            DataTransferReq.Consent consentArtefact = new DataTransferReq.Consent();
+            consentArtefact.setId(ca.getId());
+            hiRequest.setConsent(consentArtefact);
+    
+            DataTransferReq.DateRange dateRange = new DataTransferReq.DateRange();
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    
+            Date fromDate = new Date(consent.getDateFrom().getTime());
+            String fromDateString = df.format(fromDate);
+    
+            Date toDate = new Date(consent.getDateTo().getTime());
+            String toDateString = df.format(toDate);
+    
+            dateRange.setFrom(fromDateString);
+            dateRange.setTo(toDateString);
+            hiRequest.setDateRange(dateRange);
+    
+            hiRequest.setDataPushUrl(this.dataPushURL);
+    
+            DataTransferReq.KeyMaterial keyMaterial = new DataTransferReq.KeyMaterial();
+    
+            keyMaterial.setCryptoAlg("ECDH");
+            keyMaterial.setCurve("Curve25519");
+    
+            DataTransferReq.DhPublicKey dhPublicKey = new DataTransferReq.DhPublicKey();
+            dhPublicKey.setKeyValue(cryptographyUtil.getKeys().getPublicKey());
+            dhPublicKey.setParameters("Curve25519/32byte random key");
+            long expiry = new Date().getTime() + (24l * 60l * 60l * 1000l);
+            Date expiryDate = new Date(expiry);
+            dhPublicKey.setExpiry(df.format(expiryDate));
+            keyMaterial.setDhPublicKey(dhPublicKey);
+            keyMaterial.setNonce(cryptographyUtil.getKeys().getNonce());
+    
+            hiRequest.setKeyMaterial(keyMaterial);
+    
+            dataTransferReq.setHiRequest(hiRequest);
+    
+            try {
+                
+                DataRequests dataRequest = new DataRequests();
+                dataRequest.setRequestId(dataTransferReqId);
+                dataRequest.setConsentArtefactId(req.getNotification().getConsentArtefacts().get(0).getId());
+                dataRequest.setAbhaAddress(consent.getPatient().getAbhaAddress());
+                dataRequest.setExpiry(consent.getDataEraseAt());
+                dataRequestRepository.save(dataRequest);
+
+                System.out.println("Dummy data request:");
+                System.out.println(dataTransferReq);
+                
+                // WebClient webClient = WebClient.create();
+                // this.initiateSession();
+                // System.out.println("Requesting health data: " + dataTransferReq);
+                // webClient
+                // .post()
+                // .uri(new URI("https://dev.abdm.gov.in/gateway/v0.5/health-information/cm/request"))
+                // .header("Authorization", "Bearer " + getAccessToken())
+                // .header("X-CM-ID", "sbx")
+                // .bodyValue(dataTransferReq)
+                // .retrieve()
+                // .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
+                //     response -> response.bodyToMono(String.class).flatMap(body -> {
+                //         System.out.println("Error response body: " + body);
+                //         return null;
+                //     })
+                // )
+                // .bodyToMono(Void.class)
+                // .subscribe(args -> {
+                //     System.out.println("requestHealthData: Request made");
+                // });
             }
             catch (Exception e) {
                 System.out.println("Error in ABDMServices->requestHealthData: " + e.getLocalizedMessage());

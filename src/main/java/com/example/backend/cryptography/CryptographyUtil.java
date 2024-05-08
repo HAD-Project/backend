@@ -169,12 +169,13 @@ public class CryptographyUtil {
     }
 
     public String fideliusEncrypt(String plainText, String requesterNonce, String requesterPublicKey) throws IOException {
-        plainText = plainText.replace("\"", "\\\"");
+
+        String base64 = java.util.Base64.getEncoder().encodeToString(plainText.getBytes());
 
         Runtime rt = Runtime.getRuntime();
-        String encryptCmd = "sh fidelius-cli e " + 
+        String encryptCmd = "sh fidelius-cli se " + 
             '"' + 
-            plainText + 
+            base64 + 
             '"' + 
             " " + 
             this.keys.getNonce() + 
