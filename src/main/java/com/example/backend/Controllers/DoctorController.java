@@ -5,10 +5,12 @@ import com.example.backend.Entities.Doctors;
 import com.example.backend.Entities.Patients;
 import com.example.backend.Entities.Records;
 import com.example.backend.Entities.Users;
+import com.example.backend.Models.AppointmentModel;
 import com.example.backend.Models.DoctorModel;
 import com.example.backend.Models.FileUpload;
 import com.example.backend.Models.PatientDetailsModel;
 import com.example.backend.Models.RecordModel;
+import com.example.backend.Models.abdm.ConsentReqOnInit.Response;
 import com.example.backend.Models.frontend.RequestRecords;
 import com.example.backend.Repositories.DepartmentRepository;
 import com.example.backend.Repositories.DoctorRepository;
@@ -129,7 +131,7 @@ public class DoctorController {
             Users user = new Users();
             user.setName(doctorModel.getName());
             user.setName(doctorModel.getName());
-            user.setEmail(doctorModel.getEmail());
+            user.setEmail(doctorModel.getUsername());
             user.setGender(doctorModel.getGender());
             user.setUsername(doctorModel.getUsername());
             user.setPhone(doctorModel.getPhone());
@@ -152,7 +154,7 @@ public class DoctorController {
     }
 
 
-    @PutMapping("/updateDoctor/{email}")
+    @PostMapping("/updateDoctor/{email}")
     public ResponseEntity<String> updateDoctor(@PathVariable String email, @RequestBody DoctorModel doctorModel) {
         try {
             // Check if the provided email is unique
@@ -277,4 +279,29 @@ public class DoctorController {
         }
     }
 
+    @GetMapping("/getAppointments")
+    public ResponseEntity<List<AppointmentModel>> getAppointments(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        try {
+            List<AppointmentModel> appointments = doctorService.getAppointments(token.split(" ")[1]);
+            return ResponseEntity.ok().body(appointments);
+        }
+        catch (Exception e) {
+            System.out.println("Error in DoctorController:getAppointments: " + e.getLocalizedMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @DeleteMapping("/deletePatient")
+    public ResponseEntity<Void> deletePatient(@RequestParam int patientId) {
+        try {
+            doctorService.deletePatient(patientId);
+            return ResponseEntity.ok().build();
+        }
+        catch (Exception e) {
+            System.out.println("Error in DoctorController->deletePatient: " + e.getLocalizedMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

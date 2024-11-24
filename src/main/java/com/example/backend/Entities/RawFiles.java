@@ -2,6 +2,9 @@ package com.example.backend.Entities;
 
 import java.io.Serializable;
 
+import com.example.backend.cryptography.ConverterUtil;
+
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -25,9 +28,16 @@ public class RawFiles implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
     private String txnId;
+
+    @Convert(converter = ConverterUtil.class)
     private String path;
+
+    @Convert(converter = ConverterUtil.class)
     private String name;
+
+    @Convert(converter = ConverterUtil.class)
     private String type;
 
     @ManyToOne(fetch = FetchType.LAZY)

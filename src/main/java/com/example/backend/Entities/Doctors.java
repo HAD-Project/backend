@@ -39,6 +39,6 @@ public class Doctors  {
     List<Patients> treats;
 
     @Column(name = "consents")
-    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<Consents> consents;
 }

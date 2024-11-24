@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,6 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import com.example.backend.Models.abdm.ConsentReqNotify.CareContext;
+import com.example.backend.cryptography.ConverterUtil;
 
 @Entity
 @Table(name = "data_transfers")

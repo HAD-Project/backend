@@ -62,6 +62,21 @@ public class AppointmentService {
         appointment.setRemarks(toAdd.getRemarks());
         appointment.setStayType(toAdd.getType());
 
+        List<Doctors> treatedBy = patient.getTreatedBy();
+        boolean alreadyExists = false;
+        for(Doctors d: treatedBy) {
+            if(d.getDoctorId() == doctor.getDoctorId()) {
+                alreadyExists = true;
+                break;
+            }
+        }
+
+        if(!alreadyExists) {
+            treatedBy.add(doctor);
+            patient.setTreatedBy(treatedBy);
+            patientRepository.save(patient);
+        }
+
         return appointmentRepository.save(appointment);
     }
 }

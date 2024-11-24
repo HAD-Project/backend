@@ -57,7 +57,7 @@ public class Users implements UserDetails {
     @Column(name = "email", unique = true,nullable = false)
     private String email;
 
-    @Column(name = "phone", unique = true,nullable = false)
+    @Column(name = "phone", unique = true,nullable = true)
     private BigInteger phone;
 
     @Column(name="active",nullable = false)

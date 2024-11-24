@@ -97,6 +97,6 @@ public class Records {
     @Convert(converter = ConverterUtil.class)
     private String display;
 
-    @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "record", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<RawFiles> files;
 }

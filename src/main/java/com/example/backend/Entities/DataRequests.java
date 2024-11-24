@@ -2,7 +2,10 @@ package com.example.backend.Entities;
 
 import java.util.Date;
 
+import com.example.backend.cryptography.ConverterUtil;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

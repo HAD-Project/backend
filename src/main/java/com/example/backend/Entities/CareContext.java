@@ -41,5 +41,6 @@ public class CareContext {
     @JoinColumn(name = "patient_id")
     private Patients patient;
 
+    @Convert(converter = ConverterUtil.class)
     private String artefactId;
 }

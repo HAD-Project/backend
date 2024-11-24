@@ -3,9 +3,11 @@ package com.example.backend.Entities;
 import java.util.Date;
 import java.util.List;
 
+import com.example.backend.cryptography.ConverterUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -41,9 +43,11 @@ public class Consents {
     private Date timeStamp;
 
     @Column(name = "text")
+    @Convert(converter = ConverterUtil.class)
     private String text;
 
     @Column(name = "code")
+    @Convert(converter = ConverterUtil.class)
     private String code;
 
     @JsonIgnore
@@ -57,6 +61,7 @@ public class Consents {
     private List<String> hiTypes;
 
     @Column(name = "access_mode")
+    @Convert(converter = ConverterUtil.class)
     private String accessMode;
 
     @Column(name = "date_from")
@@ -69,5 +74,6 @@ public class Consents {
     private Date dataEraseAt;
 
     @Column(name = "status")
+    @Convert(converter = ConverterUtil.class)
     private String status;
 }

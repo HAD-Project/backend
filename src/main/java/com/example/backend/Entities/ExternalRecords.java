@@ -3,7 +3,10 @@ package com.example.backend.Entities;
 import java.util.Date;
 import java.util.List;
 
+import com.example.backend.cryptography.ConverterUtil;
+
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -29,6 +32,7 @@ public class ExternalRecords {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Convert(converter = ConverterUtil.class)
     private String doctorName;
 
     private Date date;
@@ -36,16 +40,19 @@ public class ExternalRecords {
     @ManyToOne(fetch = FetchType.LAZY)
     private Patients patient;
 
+    @Convert(converter = ConverterUtil.class)
     private String filePath;
 
+    @Convert(converter = ConverterUtil.class)
     private String display;
 
     private Date expiry;
 
+    @Convert(converter = ConverterUtil.class)
     private String recordType;
 
     private String consentArtefactId;
 
-    @OneToMany(mappedBy = "externalRecord", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "externalRecord", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<RawFiles> files;
 }

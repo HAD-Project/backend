@@ -24,12 +24,14 @@ import com.example.backend.Entities.Doctors;
 import com.example.backend.Entities.ExternalRecords;
 import com.example.backend.Entities.Patients;
 import com.example.backend.Entities.RawFiles;
+import com.example.backend.Repositories.AppointmentRepository;
 import com.example.backend.Repositories.CareContextRepository;
 import com.example.backend.Repositories.ConsentRepository;
 import com.example.backend.Repositories.DoctorRepository;
 import com.example.backend.Repositories.PatientRepository;
 import com.example.backend.Repositories.RawFilesRepository;
 import com.example.backend.Entities.Records;
+import com.example.backend.Models.AppointmentModel;
 import com.example.backend.Models.FileModel;
 import com.example.backend.Models.FileUpload;
 import com.example.backend.Models.PatientDetailsModel;
@@ -54,6 +56,9 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -105,12 +110,21 @@ public class DoctorService {
     @Value("${record_base_path}")
     private String recordBasePath;
 
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
     public List<Patients> getPatients(String token) {
        String email = jwtService.extractUsername(token);
        System.out.println("Email: " + email);
        Doctors doctor = doctorRepository.findByUserEmailAndUserActiveTrue(email).get();
        List<Patients> patients = doctor.getTreats();
-       return patients;
+       List<Patients> res = new ArrayList<>();
+       for(Patients p: patients) {
+        if(p.getGender() != null) {
+            res.add(p);
+        }
+       }
+       return res;
    }
 
     public PatientDetailsModel getPatient(int patientId) {
@@ -359,5 +373,67 @@ public class DoctorService {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    public List<AppointmentModel> getAppointments(String token) {
+        List<AppointmentModel> res = new ArrayList<>();
+        String email = jwtService.extractUsername(token);
+
+        Doctors doctor = doctorRepository.findByUserEmail(email);
+        List<Appointments> appointments = appointmentRepository.findByDoctor(doctor);
+        
+        for(Appointments a: appointments) {
+            AppointmentModel toAdd = new AppointmentModel();
+            toAdd.setDate(a.getAppointmentDate());
+            toAdd.setTime(a.getAppointmentTime());
+            toAdd.setPatientName(a.getPatient().getName());
+            res.add(toAdd);
+        }
+
+        return res;
+    }
+
+    public void deletePatient(int patientId) {
+        Patients patient = patientRepository.findByPatientId(patientId);
+        
+        List<Records> records = patient.getRecords();
+        for(Records r: records) {
+            try {
+                Files.deleteIfExists(Paths.get(new URI(r.getFilePath())));                
+            }
+            catch (Exception ex) {
+                System.out.println("Error in CallbackServices->deleteRevokedRecords: " + ex.getLocalizedMessage());
+            }
+        }
+        List<Doctors> treatedBy = patient.getTreatedBy();
+        List<CareContext> careContexts = patient.getCareContexts();
+        List<Consents> consents = patient.getConsents();
+        List<ExternalRecords> externalRecords = patient.getExternalRecords();
+
+        recordRepository.deleteAll(records);
+        careContextRepository.deleteAll(careContexts);
+        consentRepository.deleteAll(consents);
+
+        for(ExternalRecords e: externalRecords) {
+            try {
+                Files.deleteIfExists(Paths.get(new URI(e.getFilePath())));                
+            }
+            catch (Exception ex) {
+                System.out.println("Error in CallbackServices->deleteRevokedRecords: " + ex.getLocalizedMessage());
+            }
+        }
+
+        patient.setName(null);
+        patient.setAbhaAddress(null);
+        patient.setMobileNo(null);        
+        patient.setDob(null);
+        patient.setCareContexts(null);
+        patient.setConsents(null);
+        patient.setExternalRecords(null);
+        patient.setRecords(null);
+        patient.setLinkToken(null);
+        patient.setGender(null);
+
+        patientRepository.save(patient);
     }
 } 
